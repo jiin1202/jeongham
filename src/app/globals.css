@@ -1,27 +1,60 @@
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #ffffff;
+  color: #1c2430;
+  font-feature-settings: "tnum" 1, "ss06" 1;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+:focus-visible {
+  outline: 2px solid #00a19b;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 h-12 text-[15px] font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
   }
+  .btn-primary {
+    @apply btn bg-ink text-white hover:bg-[#2C3644];
+  }
+  .btn-teal {
+    @apply btn bg-teal text-white hover:bg-teal-deep;
+  }
+  .btn-ghost {
+    @apply btn border border-line bg-white text-ink hover:border-ink;
+  }
+  .page {
+    @apply mx-auto w-full max-w-page px-5 sm:px-8;
+  }
+}
+
+@keyframes settle {
+  from { opacity: 1; }
+  to { opacity: 0.16; }
+}
+@keyframes rise {
+  from { transform: translateY(6px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.noise-word { animation: settle 1.4s ease-out 0.6s both; }
+.pick-word { animation: rise 0.5s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .noise-word { animation: none; opacity: 0.16; }
+  .pick-word { animation: none; }
 }
