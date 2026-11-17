@@ -1,4 +1,4 @@
-import type { Concern, SkinType } from "@/data/products";
+import type { Concern, SkinType } from "./model";
 
 export type Answers = {
   feel?: "tight" | "tzone" | "allshine" | "fine";

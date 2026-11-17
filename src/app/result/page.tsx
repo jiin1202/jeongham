@@ -2,10 +2,14 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { buildRoutine, decodeAnswers, encodeAnswers, scoreProduct, type Pick } from "@/lib/engine";
-import { concernLabel, skinTypeLabel, type Answers } from "@/lib/quiz";
-import { loadAnswers, saveSaved, today } from "@/lib/store";
-import { categoryLabel, oliveyoungUrl, products } from "@/data/products";
+import { buildRoutine, decodeAnswers, encodeAnswers, pickFor, scoreProduct, type Pick } from "@/lib/engine";
+import { skinTypeLabel, type Answers } from "@/lib/quiz";
+import { loadAnswers, today } from "@/lib/store";
+import { fetchRatings, saveSaved } from "@/lib/sync";
+import { setRatings } from "@/lib/engine";
+import { recordDiagnosis } from "@/lib/track";
+import { categoryLabel, concernLabel, buyUrl, products } from "@/lib/model";
+import { track } from "@/lib/track";
 
 const won = (n: number) => n.toLocaleString("ko-KR") + "원";
 
@@ -21,20 +25,26 @@ function ResultInner() {
 
   useEffect(() => {
     const a = shared ? decodeAnswers(shared) : loadAnswers();
-    setAnswers(a);
-    setReady(true);
+    fetchRatings()
+      .then((r) => setRatings(r))
+      .catch(() => {})
+      .finally(() => {
+        setAnswers(a);
+        setReady(true);
+      });
   }, [shared]);
 
   const routine = useMemo(() => (answers ? buildRoutine(answers) : null), [answers]);
+  useEffect(() => {
+    if (routine && answers && !shared) recordDiagnosis(answers, routine.picks.map((p) => p.product.id), routine.total, routine.plan);
+  }, [routine, answers, shared]);
 
   const picks: Pick[] = useMemo(() => {
     if (!routine || !answers) return [];
     return routine.picks.map((pk, idx) => {
       const id = swaps[idx];
       if (!id) return pk;
-      const p = products.find((x) => x.id === id)!;
-      const r = scoreProduct(p, answers);
-      return { product: p, score: r?.score ?? 0, reasons: r?.reasons ?? [] };
+      return pickFor(id, answers) ?? pk;
     });
   }, [routine, swaps, answers]);
 
@@ -69,17 +79,19 @@ function ResultInner() {
   const total = picks.reduce((s, p) => s + p.product.price, 0);
   const budget = answers.budget ?? 999999;
 
-  const save = () => {
+  const save = async () => {
     const start: Record<string, string> = {};
     picks.forEach((p) => (start[p.product.id] = today()));
-    saveSaved({ answers, ids: picks.map((p) => p.product.id), start, checks: {} });
-    router.push("/me");
+    track("save_routine");
+    await saveSaved({ answers, ids: picks.map((p) => p.product.id), start, checks: {} });
+    router.push("/me/");
   };
 
   const share = async () => {
     const url = `${location.origin}/result/?d=${encodeAnswers(answers)}`;
     const text = `내 피부는 ${skinTypeLabel[routine.skin]}, 정함이 정해준 루틴 보기`;
     try {
+      track("share");
       if (navigator.share) {
         await navigator.share({ title: "정함", text, url });
         return;
@@ -120,8 +132,8 @@ function ResultInner() {
       </div>
 
       <p className="mt-6 border-l-2 border-teal pl-4 text-[14px] leading-6 text-steel">
-        제품 {products.length}개 중 단계별 후보 {routine.candidates}개를 비교했고,
-        {routine.excluded > 0 ? ` 자극 우려가 있는 ${routine.excluded}개는 뺐어요.` : " 자극 우려로 뺀 제품은 없어요."} 예산 안에서 점수가 가장 높은 조합이에요.
+        전성분을 분석한 제품 {products.length}개 중 이 루틴 단계에 해당하는 {routine.candidates}개를 비교했고,
+        {routine.excluded > 0 ? ` 자극이 겹칠 수 있는 ${routine.excluded}개는 뺐어요.` : " 자극 우려로 뺀 제품은 없어요."} 예산 안에서 점수가 가장 높은 조합이에요.
       </p>
 
       <ol className="mt-10 divide-y divide-line border-y border-line">
@@ -148,7 +160,11 @@ function ResultInner() {
                   <h2 className="mt-1 text-[19px] font-bold leading-snug tracking-[-0.02em]">
                     <span className="text-steel">{p.brand}</span> {p.name}
                   </h2>
-                  {p.pack && <p className="mt-0.5 text-[13px] text-mist">올리브영 구성: {p.pack}</p>}
+                  <p className="mt-0.5 text-[13px] text-mist">
+                    {p.volumeEstimated ? "용량 정보 없음" : `${p.volume}${/g/i.test(p.volumeText) ? "g" : "ml"}`}
+                    {p.units > 1 ? ` × ${p.units}개 구성` : ""}
+                    {p.salePrice && p.salePrice < p.price ? `, 조사일 할인가 ${won(p.salePrice)}` : ""}
+                  </p>
                   <ul className="mt-3 flex flex-wrap gap-1.5">
                     {pk.reasons.map((r) => (
                       <li key={r} className="rounded-md bg-teal-wash px-2 py-1 text-[12.5px] font-medium text-teal-deep">
@@ -156,8 +172,14 @@ function ResultInner() {
                       </li>
                     ))}
                   </ul>
+                  {pk.warnings.map((w) => (
+                    <p key={w} className="mt-2 text-[13px] text-amber">{w}</p>
+                  ))}
                   <div className="mt-4 flex flex-wrap gap-2 text-[13.5px]">
-                    <a href={oliveyoungUrl(p.goodsNo)} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-line px-3 py-2 font-medium hover:border-ink">
+                    <Link href={`/p/${p.id}/`} className="rounded-lg border border-line px-3 py-2 font-medium hover:border-ink">
+                      성분 보기
+                    </Link>
+                    <a onClick={() => track("click_buy", { id: p.id })} href={buyUrl(p.goodsNo)} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-line px-3 py-2 font-medium hover:border-ink">
                       올리브영에서 보기
                     </a>
                     <button type="button" onClick={() => setOpen(open === idx ? null : idx)} aria-expanded={open === idx} className="rounded-lg px-3 py-2 font-medium text-steel hover:text-ink">

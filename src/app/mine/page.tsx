@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { categoryLabel, products, type Category, type Product } from "@/data/products";
+import { byId, categoryLabel, products, type Category, type Product } from "@/lib/model";
 import { checkProducts } from "@/lib/engine";
 import { loadAnswers, loadMine, saveMine } from "@/lib/store";
 import { skinTypeLabel, skinTypeOf, type Answers } from "@/lib/quiz";
@@ -31,7 +31,7 @@ export default function MinePage() {
     );
   }, [q, cat]);
 
-  const mine = ids.map((id) => products.find((p) => p.id === id)).filter(Boolean) as Product[];
+  const mine = ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
   const results = checkProducts(mine, a);
   const color = { good: "text-teal-deep bg-teal-wash", caution: "text-amber bg-amber-wash", bad: "text-rose bg-rose-wash" } as const;
 
@@ -126,7 +126,7 @@ export default function MinePage() {
                         <p className="text-[12.5px] text-steel">
                           {categoryLabel[p.category]}, {p.brand}
                         </p>
-                        <p className="text-[16px] font-bold">{p.name}</p>
+                        <Link href={`/p/${p.id}/`} className="text-[16px] font-bold hover:underline">{p.name}</Link>
                       </div>
                       <span className={`shrink-0 rounded-md px-2.5 py-1 text-[13px] font-bold ${color[r.level]}`}>{r.title}</span>
                     </div>
@@ -144,7 +144,7 @@ export default function MinePage() {
             </ul>
           )}
           <p className="mt-4 text-[12.5px] leading-5 text-mist">
-            판단은 제품 소구 문구와 일반적인 사용 가이드를 기준으로 해요. 따갑거나 붉어지면 사용을 멈추고 전문의와 상담하세요.
+            판단은 각 제품의 전성분과 일반적인 사용 가이드를 기준으로 해요. 따갑거나 붉어지면 사용을 멈추고 전문의와 상담하세요.
           </p>
         </div>
       </section>

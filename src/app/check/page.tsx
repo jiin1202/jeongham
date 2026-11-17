@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { questions, type Answers } from "@/lib/quiz";
 import { saveAnswers } from "@/lib/store";
-import type { Concern } from "@/data/products";
+import { track } from "@/lib/track";
+import type { Concern } from "@/lib/model";
 
 export default function CheckPage() {
   const router = useRouter();
@@ -12,6 +13,10 @@ export default function CheckPage() {
   const [warn, setWarn] = useState("");
   const q = questions[i];
   const last = i === questions.length - 1;
+
+  useEffect(() => {
+    track("start_check");
+  }, []);
 
   useEffect(() => {
     setWarn("");

@@ -1,11 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/auth";
+import { cloudEnabled } from "@/lib/supabase";
 
 const nav = [
+  { href: "/products", label: "제품" },
   { href: "/mine", label: "쓰는 제품 검사" },
+  { href: "/guide", label: "가이드" },
   { href: "/me", label: "내 루틴" },
-  { href: "/standard", label: "추천 기준" },
 ];
 
 export function Logo({ className = "" }: { className?: string }) {
@@ -22,6 +25,7 @@ export function Logo({ className = "" }: { className?: string }) {
 
 export default function Header() {
   const path = usePathname();
+  const { user } = useAuth();
   return (
     <header className="sticky top-0 z-30 border-b border-line/70 bg-white/90 backdrop-blur">
       <div className="page flex h-16 items-center justify-between">
@@ -40,17 +44,22 @@ export default function Header() {
               {n.label}
             </Link>
           ))}
-          <Link href="/check" className="ml-2 rounded-lg bg-ink px-3.5 py-2 font-semibold text-white hover:bg-[#2C3644]">
+          {cloudEnabled && (
+            <Link href="/login" className={`rounded-lg px-3 py-2 ${path?.startsWith("/login") ? "font-semibold text-ink" : "text-steel hover:text-ink"}`}>
+              {user ? "계정" : "로그인"}
+            </Link>
+          )}
+          <Link href="/check" className="ml-1 rounded-lg bg-ink px-3.5 py-2 font-semibold text-white hover:bg-[#2C3644]">
             진단하기
           </Link>
         </nav>
       </div>
-      <nav className="page flex gap-1 pb-2 text-[13px] sm:hidden">
+      <nav className="page flex gap-1 overflow-x-auto pb-2 text-[13px] sm:hidden">
         {nav.map((n) => (
           <Link
             key={n.href}
             href={n.href}
-            className={`rounded-full px-3 py-1.5 ${path?.startsWith(n.href) ? "bg-fog text-ink font-semibold" : "text-steel"}`}
+            className={`shrink-0 rounded-full px-3 py-1.5 ${path?.startsWith(n.href) ? "bg-fog text-ink font-semibold" : "text-steel"}`}
           >
             {n.label}
           </Link>

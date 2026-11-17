@@ -1,7 +1,10 @@
 import Link from "next/link";
-import { products } from "@/data/products";
+import { products } from "@/lib/model";
+import { buildRoutine } from "@/lib/engine";
+import type { Answers } from "@/lib/quiz";
 
-const PICKED = ["c4", "m3", "u2"]; // 히어로 예시: 복합성·트러블 루틴
+// 히어로 예시: 실제 엔진이 고른 복합성·트러블 루틴(빌드 시점 계산)
+const SAMPLE: Answers = { feel: "tzone", concerns: ["trouble", "oil"], sensitive: "sometimes", shave: "few", current: "few", steps: "min", sunPain: "sticky", budget: 80000 };
 
 const survey = [
   { label: "제품이 너무 많아 비교가 어렵다", v: 48 },
@@ -33,8 +36,10 @@ function Bars({ rows }: { rows: { label: string; v: number }[] }) {
 }
 
 export default function Home() {
-  const noise = products.filter((p) => !PICKED.includes(p.id)).slice(0, 30);
-  const picked = PICKED.map((id) => products.find((p) => p.id === id)!);
+  const routine = buildRoutine(SAMPLE);
+  const picked = routine.picks.map((x) => x.product);
+  const pickedIds = new Set(picked.map((p) => p.id));
+  const noise = products.filter((p) => !pickedIds.has(p.id)).slice(0, 30);
 
   return (
     <>
@@ -47,7 +52,7 @@ export default function Home() {
             루틴은 정함.
           </h1>
           <p className="mt-6 max-w-md text-[17px] leading-8 text-steel">
-            질문 8개에 답하면 올리브영 인기 제품 {products.length}개 중에서
+            질문 8개에 답하면 올리브영 인기 제품 {products.length}개의 전성분을 따져서
             내 피부와 예산에 맞는 조합을 하나로 정해드려요.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
@@ -70,7 +75,7 @@ export default function Home() {
             ))}
           </div>
           <div className="absolute inset-x-6 bottom-6 rounded-2xl bg-white p-5 shadow-[0_12px_40px_-12px_rgba(28,36,48,0.28)] sm:inset-x-8 sm:bottom-8">
-            <p className="text-[13px] text-steel">복합성 피부, 트러블 고민, 8만 원 이하</p>
+            <p className="text-[13px] text-steel">복합성 피부, 트러블·번들거림, 3단계 {routine.total.toLocaleString()}원</p>
             <ol className="mt-3 space-y-2.5">
               {picked.map((p, i) => (
                 <li key={p.id} className="pick-word flex items-center gap-3" style={{ animationDelay: `${1.6 + i * 0.15}s` }}>
@@ -123,7 +128,7 @@ export default function Home() {
         <ol className="mt-10 grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-3">
           {[
             { t: "질문 8개로 피부 파악", d: "세안 후 느낌, 고민, 예민도, 면도 주기, 원하는 단계와 예산까지 탭 몇 번으로 답해요." },
-            { t: `${products.length}개 제품을 대신 비교`, d: "피부 타입, 고민, 자극 가능성, 제형, 예산을 따져 단계마다 하나씩만 골라요." },
+            { t: `${products.length}개 제품을 대신 비교`, d: "전성분에서 고민에 맞는 성분과 자극 가능 성분을 찾고, 피부 타입·제형·예산까지 따져 단계마다 하나씩만 골라요." },
             { t: "다 쓸 때까지 챙겨요", d: "아침·저녁 체크와 용량 기준 소진 예정일로 재구매 시점을 알려드려요." },
           ].map((s, i) => (
             <li key={s.t} className="bg-white p-7 sm:p-8">
