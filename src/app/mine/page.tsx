@@ -71,7 +71,7 @@ export default function MinePage() {
               type="button"
               onClick={() => setCat(c)}
               aria-pressed={cat === c}
-              className={`rounded-full px-3 py-1.5 text-[13px] font-medium ${cat === c ? "bg-ink text-white" : "bg-fog text-steel hover:text-ink"}`}
+              className={`rounded-full px-3 py-1.5 text-[13px] font-medium ${cat === c ? "bg-teal-deep text-white" : "bg-fog text-steel hover:text-ink"}`}
             >
               {c === "all" ? "전체" : categoryLabel[c]}
             </button>

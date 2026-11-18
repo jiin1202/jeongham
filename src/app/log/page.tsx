@@ -29,7 +29,7 @@ function Scale({ label, value, onChange, n }: { label: string; value: number; on
       <div className="mt-2 flex flex-wrap gap-1.5">
         {n.map((t, i) =>
           t ? (
-            <button key={t} type="button" aria-pressed={value === i} onClick={() => onChange(i)} className={`rounded-lg px-3 py-2 text-[14px] font-medium ${value === i ? "bg-ink text-white" : "bg-fog text-steel hover:text-ink"}`}>
+            <button key={t} type="button" aria-pressed={value === i} onClick={() => onChange(i)} className={`rounded-lg px-3 py-2 text-[14px] font-medium ${value === i ? "bg-teal-deep text-white" : "bg-fog text-steel hover:text-ink"}`}>
               {t}
             </button>
           ) : null

@@ -53,7 +53,7 @@ export default function ProductsPage() {
     return out.sort(by[sort]);
   }, [q, cat, con, skin, noFrag, men, sort]);
 
-  const chip = (on: boolean) => `rounded-full px-3 py-1.5 text-[13px] font-medium ${on ? "bg-ink text-white" : "bg-fog text-steel hover:text-ink"}`;
+  const chip = (on: boolean) => `rounded-full px-3 py-1.5 text-[13px] font-medium ${on ? "bg-teal-deep text-white" : "bg-fog text-steel hover:text-ink"}`;
   const reset = () => {
     setQ("");
     setCat("all");
