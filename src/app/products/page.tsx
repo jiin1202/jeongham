@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ProductThumb from "@/components/ProductThumb";
 import { categoryLabel, concernLabel, products, type Category, type Concern, type SkinType } from "@/lib/model";
 import { skinTypeLabel } from "@/lib/quiz";
 
@@ -136,7 +137,8 @@ export default function ProductsPage() {
             <ul className="mt-4 divide-y divide-line border-y border-line">
               {list.map((p) => (
                 <li key={p.id}>
-                  <Link href={`/p/${p.id}/`} className="grid grid-cols-[1fr_auto] items-center gap-4 py-4 hover:bg-fog/50 sm:px-2">
+                  <Link href={`/p/${p.id}/`} className="grid grid-cols-[auto_1fr_auto] items-center gap-4 py-4 hover:bg-fog/50 sm:px-2">
+                    <ProductThumb src={p.image} brand={p.brand} name={p.name} className="h-16 w-16 sm:h-20 sm:w-20" />
                     <span className="min-w-0">
                       <span className="block text-[12.5px] text-steel">{categoryLabel[p.category]}, {p.brand}</span>
                       <span className="block truncate text-[15.5px] font-semibold">{p.name}</span>

@@ -8,6 +8,7 @@ export type Concern = "trouble" | "pore" | "redness" | "dry" | "tone" | "oil" | 
 export interface RawProduct {
   id: string;
   goodsNo: string;
+  image: string;
   brand: string;
   name: string;
   fullName: string;

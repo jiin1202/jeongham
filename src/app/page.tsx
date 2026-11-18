@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ProductThumb from "@/components/ProductThumb";
 import { products } from "@/lib/model";
 import { buildRoutine } from "@/lib/engine";
 import type { Answers } from "@/lib/quiz";
@@ -82,6 +83,7 @@ export default function Home() {
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal text-[12px] font-bold text-white">
                     {i + 1}
                   </span>
+                  <ProductThumb src={p.image} brand={p.brand} name={p.name} size={40} priority />
                   <span className="truncate text-[15px] font-semibold">
                     {p.brand} {p.name}
                   </span>
@@ -89,7 +91,7 @@ export default function Home() {
               ))}
             </ol>
           </div>
-          <div className="h-[230px] sm:h-[190px]" />
+          <div className="h-[280px] sm:h-[240px]" />
         </div>
       </section>
 

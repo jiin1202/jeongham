@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ProductThumb from "@/components/ProductThumb";
 import { loadSaved, loadFeedback, today, type Saved, type Feedback } from "@/lib/store";
 import { clearSaved, saveSaved, saveFeedback } from "@/lib/sync";
 import { daysToEmpty } from "@/lib/engine";
@@ -175,12 +176,15 @@ export default function MePage() {
           const pct = Math.min(100, Math.round((used / total) * 100));
           return (
             <li key={p.id} className="py-5">
-              <div className="flex items-baseline justify-between gap-4">
-                <div className="min-w-0">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <ProductThumb src={p.image} brand={p.brand} name={p.name} size={56} />
+                  <div className="min-w-0">
                   <p className="text-[13px] font-semibold text-teal-deep">{categoryLabel[p.category]}</p>
                   <Link href={`/p/${p.id}/`} className="block truncate text-[16px] font-bold hover:underline">
                     <span className="text-steel">{p.brand}</span> {p.name}
                   </Link>
+                  </div>
                 </div>
                 <p className={`shrink-0 text-[15px] font-bold tabular-nums ${left <= 7 ? "text-rose" : ""}`}>{left === 0 ? "다 썼을 때예요" : `${left}일 남음`}</p>
               </div>

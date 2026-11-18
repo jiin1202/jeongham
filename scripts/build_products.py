@@ -96,6 +96,15 @@ for row in src["q"]:
         "ingredients": ing, "forMen": bool(men) or bool(re.search(r"포 ?맨|옴므|맨즈|남성", name)),
         "rank": rank or 0, "rankSource": srcname,
     })
+# 대표 이미지(올리브영 썸네일). scripts/images.txt: "goodsNo 끝 8자리 + 버전 2자리 + j|p"
+IMG = {}
+for e in open("scripts/images.txt").read().strip().split(","):
+    if len(e) == 11:
+        IMG["A0000" + e[:8]] = e[8:10] + ("ko.jpg" if e[10] == "j" else "ko.png")
+for p_ in out:
+    v = IMG.get(p_["goodsNo"])
+    p_["image"] = f"https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/400/10/0000/{p_['goodsNo'][5:9]}/{p_['goodsNo']}{v}?l=ko" if v else ""
+
 # 수동 보정(이름 규칙으로 잘못 분류된 것)
 FIX_CAT = {"이지워시 마일드 선크림": "sun", "프로텍트 올인원 프로": "sun", "더 6 펩타이드 스킨 부스터 세럼": "serum"}
 for p_ in out:

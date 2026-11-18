@@ -1,6 +1,7 @@
 "use client";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ProductThumb from "@/components/ProductThumb";
 import { useRouter, useSearchParams } from "next/navigation";
 import { buildRoutine, decodeAnswers, encodeAnswers, pickFor, scoreProduct, type Pick } from "@/lib/engine";
 import { skinTypeLabel, type Answers } from "@/lib/quiz";
@@ -143,9 +144,12 @@ function ResultInner() {
           return (
             <li key={idx} className="py-6">
               <div className="flex gap-4">
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-[14px] font-bold text-white">
-                  {idx + 1}
-                </span>
+                <Link href={`/p/${p.id}/`} className="relative shrink-0 self-start" aria-label={`${p.brand} ${p.name} 성분 보기`}>
+                  <ProductThumb src={p.image} brand={p.brand} name={p.name} className="h-[88px] w-[88px] sm:h-[120px] sm:w-[120px]" priority={idx < 2} />
+                  <span className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-ink text-[13px] font-bold text-white ring-2 ring-white">
+                    {idx + 1}
+                  </span>
+                </Link>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <p className="text-[13px] font-semibold text-teal-deep">
@@ -179,7 +183,7 @@ function ResultInner() {
                     <Link href={`/p/${p.id}/`} className="rounded-lg border border-line px-3 py-2 font-medium hover:border-ink">
                       성분 보기
                     </Link>
-                    <a onClick={() => track("click_buy", { id: p.id })} href={buyUrl(p.goodsNo)} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-line px-3 py-2 font-medium hover:border-ink">
+                    <a onClick={() => track("click_buy", { id: p.id })} href={buyUrl(p.goodsNo)} target="_blank" rel="noopener noreferrer sponsored" className="rounded-lg bg-ink px-3 py-2 font-medium text-white hover:bg-[#2C3644]">
                       올리브영에서 보기
                     </a>
                     <button type="button" onClick={() => setOpen(open === idx ? null : idx)} aria-expanded={open === idx} className="rounded-lg px-3 py-2 font-medium text-steel hover:text-ink">
@@ -199,8 +203,11 @@ function ResultInner() {
                           }}
                           className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3 text-left hover:bg-white"
                         >
-                          <span className="min-w-0 text-[14.5px]">
-                            <span className="text-steel">{ap.brand}</span> <span className="font-semibold">{ap.name}</span>
+                          <span className="flex min-w-0 items-center gap-3 text-[14.5px]">
+                            <ProductThumb src={ap.image} brand={ap.brand} name={ap.name} size={48} />
+                            <span className="min-w-0">
+                              <span className="text-steel">{ap.brand}</span> <span className="font-semibold">{ap.name}</span>
+                            </span>
                           </span>
                           <span className="shrink-0 text-[13.5px] tabular-nums text-steel">{won(ap.price)}로 바꾸기</span>
                         </button>

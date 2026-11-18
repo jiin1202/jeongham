@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ProductThumb from "@/components/ProductThumb";
 import { byId, categoryLabel, products, type Category, type Product } from "@/lib/model";
 import { checkProducts } from "@/lib/engine";
 import { loadAnswers, loadMine, saveMine } from "@/lib/store";
@@ -92,11 +93,14 @@ export default function MinePage() {
                   onClick={() => setAndSave(on ? ids.filter((x) => x !== p.id) : [...ids, p.id])}
                   className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left hover:bg-fog/60"
                 >
-                  <span className="min-w-0">
-                    <span className="block text-[12.5px] text-steel">
-                      {categoryLabel[p.category]}, {p.brand}
+                  <span className="flex min-w-0 items-center gap-3">
+                    <ProductThumb src={p.image} brand={p.brand} name={p.name} size={48} />
+                    <span className="min-w-0">
+                      <span className="block text-[12.5px] text-steel">
+                        {categoryLabel[p.category]}, {p.brand}
+                      </span>
+                      <span className="block truncate text-[15px] font-semibold">{p.name}</span>
                     </span>
-                    <span className="block truncate text-[15px] font-semibold">{p.name}</span>
                   </span>
                   <span className={`shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-semibold ${on ? "bg-teal text-white" : "border border-line text-ink"}`}>
                     {on ? "쓰는 중" : "추가"}
@@ -122,7 +126,8 @@ export default function MinePage() {
                 return (
                   <li key={p.id} className="rounded-2xl border border-line p-5">
                     <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
+                      <ProductThumb src={p.image} brand={p.brand} name={p.name} size={56} />
+                      <div className="min-w-0 flex-1">
                         <p className="text-[12.5px] text-steel">
                           {categoryLabel[p.category]}, {p.brand}
                         </p>
