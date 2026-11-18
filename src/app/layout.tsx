@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "정함", statusBarStyle: "default" },
   icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://jeongham.vercel.app"),
   openGraph: { title: "정함 – 비교는 끝, 루틴은 정함", description: "질문 8개로 내 피부와 예산에 맞는 스킨케어 루틴을 정해요.", locale: "ko_KR", type: "website" },
 };
 
