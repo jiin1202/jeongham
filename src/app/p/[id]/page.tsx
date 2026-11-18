@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GROUPS } from "@/data/ingredients";
-import { RESEARCH_DATE, advice, fitLine, byId, cautions, categoryLabel, keyBenefits, products } from "@/lib/model";
+import { RESEARCH_DATE, advice, fitLine, byId, cautions, categoryLabel, keyBenefits, products, textureLabel } from "@/lib/model";
 import FitLine from "@/components/FitLine";
+import { pairsFor } from "@/lib/pairs";
 import { daysToEmpty } from "@/lib/engine";
 import ProductActions from "./ProductActions";
 import ProductThumb from "@/components/ProductThumb";
@@ -33,6 +34,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const benefits = keyBenefits(p);
   const adv = advice(p);
   const fit = fitLine(p);
+  const pairs = pairsFor(p);
   const warn = cautions(p);
   const posGroup = new Map<number, (typeof p.hits)[number]>();
   p.hits.forEach((h) => {
@@ -59,6 +61,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           <h1 className="mt-0.5 text-[28px] font-extrabold leading-tight tracking-[-0.035em] sm:text-[34px]">{p.name}</h1>
           <FitLine p={p} size="lg" className="mt-3" />
           <div className="mt-3 flex flex-wrap gap-1.5 text-[13px]">
+            <span className="rounded-full bg-fog px-3 py-1 text-steel">{textureLabel[p.texture]}</span>
             {p.fragranceFree && <span className="rounded-full bg-fog px-3 py-1 text-steel">향료 무첨가</span>}
             {p.forMen && <span className="rounded-full bg-fog px-3 py-1 text-steel">남성용</span>}
             {p.functional && !/해당\s*없음|해당사항\s*없음/.test(p.functional) && <span className="rounded-full bg-fog px-3 py-1 text-steel">기능성 화장품</span>}
@@ -115,6 +118,32 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           ))}
         </div>
       </section>
+
+      {pairs.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-[19px] font-bold tracking-[-0.02em]">같이 쓰면 좋은 꿀조합</h2>
+          <p className="mt-1 text-[13.5px] text-steel">피부과학회·임상 연구로 확인된 성분 궁합만 골랐어요. 광고·협찬 조합은 넣지 않아요.</p>
+          <ul className="mt-5 grid gap-3 lg:grid-cols-3">
+            {pairs.map((x) => (
+              <li key={x.partner.id} className="flex flex-col rounded-2xl border border-line p-4">
+                <p className="text-[13px] font-bold text-teal-deep">{x.title}</p>
+                <Link href={`/p/${x.partner.id}/`} className="mt-3 flex items-center gap-3 rounded-xl bg-fog/60 p-2.5 hover:bg-fog">
+                  <ProductThumb src={x.partner.image} brand={x.partner.brand} name={x.partner.name} size={56} />
+                  <span className="min-w-0">
+                    <span className="block text-[12px] text-steel">{categoryLabel[x.partner.category]}, {x.partner.brand}</span>
+                    <span className="block truncate text-[14.5px] font-semibold">{x.partner.name}</span>
+                    <FitLine p={x.partner} className="mt-1" />
+                  </span>
+                </Link>
+                <p className="mt-3 flex-1 text-[13.5px] leading-6 text-ink/80">{x.why}</p>
+                <a href={x.source.url} target="_blank" rel="noopener noreferrer" className="mt-3 text-[12px] text-mist underline underline-offset-2 hover:text-ink">
+                  근거: {x.source.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="mt-12">
         <h2 className="text-[19px] font-bold tracking-[-0.02em]">꼭 확인할 성분</h2>

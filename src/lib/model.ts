@@ -110,8 +110,9 @@ function build(r: RawProduct): Product {
 
   const n = r.fullName;
   let texture: Product["texture"] = "mid";
-  if (/젤|워터|플루이드|에센스|토너|세럼|앰플|가벼운|산뜻|아쿠아/.test(n)) texture = "light";
-  if (/밤|리치|인텐시브|버터|고보습/.test(n) || ["butter", "occlusive"].some((g) => hits.some((h) => h.group === g && h.pos < 8))) texture = "rich";
+  if (/젤|워터|플루이드|에센스|토너|세럼|앰플|가벼운|산뜻|아쿠아|에멀전|로션|선세럼|보송|뽀송|피지/.test(n)) texture = "light";
+  if (/밤|리치|인텐시브|버터|고보습|장벽|진정크림|리페어 크림/.test(n) || ["butter", "occlusive"].some((g) => hits.some((h) => h.group === g && h.pos < 8))) texture = "rich";
+  else if (/크림/.test(n) && texture === "mid" && hits.some((h) => (h.group === "ceramide" || h.group === "squalane") && h.pos < 12)) texture = "rich";
   if (r.category === "cleanser" || r.category === "toner") texture = texture === "rich" ? "mid" : "light";
 
   let sunFilter: Product["sunFilter"];
@@ -155,6 +156,8 @@ export const categoryLabel: Record<Category, string> = {
   allinone: "올인원",
   sun: "선크림",
 };
+
+export const textureLabel: Record<Product["texture"], string> = { light: "가벼운 제형", mid: "보통 제형", rich: "촉촉한 제형" };
 
 export const dailyUse: Record<Category, number> = { cleanser: 2, toner: 3, serum: 0.6, moisturizer: 1, allinone: 2, sun: 1 };
 
