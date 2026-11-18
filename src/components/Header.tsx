@@ -38,7 +38,7 @@ export default function Header() {
               key={n.href}
               href={n.href}
               className={`hidden rounded-lg px-3 py-2 sm:block ${
-                path?.startsWith(n.href) ? "text-ink font-semibold" : "text-steel hover:text-ink"
+                path?.startsWith(n.href) ? "bg-teal-wash text-teal-deep font-semibold" : "text-steel hover:text-ink"
               }`}
             >
               {n.label}
@@ -49,7 +49,7 @@ export default function Header() {
               {user ? "계정" : "로그인"}
             </Link>
           )}
-          <Link href="/check" className="ml-1 rounded-lg bg-ink px-3.5 py-2 font-semibold text-white hover:bg-[#2C3644]">
+          <Link href="/check" className="ml-1 rounded-lg bg-teal-deep px-3.5 py-2 font-semibold text-white hover:bg-teal-dark">
             진단하기
           </Link>
         </nav>
@@ -59,7 +59,7 @@ export default function Header() {
           <Link
             key={n.href}
             href={n.href}
-            className={`shrink-0 rounded-full px-3 py-1.5 ${path?.startsWith(n.href) ? "bg-fog text-ink font-semibold" : "text-steel"}`}
+            className={`shrink-0 rounded-full px-3 py-1.5 ${path?.startsWith(n.href) ? "bg-teal-wash text-teal-deep font-semibold" : "text-steel"}`}
           >
             {n.label}
           </Link>

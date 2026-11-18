@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
+import FitLine from "@/components/FitLine";
 import { categoryLabel, concernLabel, products, type Category, type Concern, type SkinType } from "@/lib/model";
 import { skinTypeLabel } from "@/lib/quiz";
 
@@ -142,6 +143,7 @@ export default function ProductsPage() {
                     <span className="min-w-0">
                       <span className="block text-[12.5px] text-steel">{categoryLabel[p.category]}, {p.brand}</span>
                       <span className="block truncate text-[15.5px] font-semibold">{p.name}</span>
+                      <FitLine p={p} className="mt-1" />
                       <span className="mt-1 flex flex-wrap gap-1 text-[12px]">
                         {p.concerns.slice(0, 3).map((c) => <span key={c} className="rounded bg-teal-wash px-1.5 py-0.5 text-teal-deep">{concernLabel[c]}</span>)}
                         {p.irritation >= 3 && <span className="rounded bg-amber-wash px-1.5 py-0.5 text-amber">자극 가능 성분</span>}

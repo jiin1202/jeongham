@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
+import FitLine from "@/components/FitLine";
 import { loadSaved, loadFeedback, today, type Saved, type Feedback } from "@/lib/store";
 import { clearSaved, saveSaved, saveFeedback } from "@/lib/sync";
 import { daysToEmpty } from "@/lib/engine";
@@ -184,6 +185,7 @@ export default function MePage() {
                   <Link href={`/p/${p.id}/`} className="block truncate text-[16px] font-bold hover:underline">
                     <span className="text-steel">{p.brand}</span> {p.name}
                   </Link>
+                  <FitLine p={p} className="mt-1" />
                   </div>
                 </div>
                 <p className={`shrink-0 text-[15px] font-bold tabular-nums ${left <= 7 ? "text-rose" : ""}`}>{left === 0 ? "다 썼을 때예요" : `${left}일 남음`}</p>
@@ -194,7 +196,7 @@ export default function MePage() {
               <div className="mt-3 flex flex-wrap items-center gap-2 text-[13.5px]">
                 <span className="mr-auto text-steel">예상 {fmt(end)}</span>
                 <button type="button" onClick={() => downloadIcs(p, new Date(end.getTime() - 3 * DAY))} className="rounded-lg border border-line px-3 py-1.5 font-medium hover:border-ink">캘린더에 알림 추가</button>
-                <a href={buyUrl(p.goodsNo)} target="_blank" rel="noopener noreferrer sponsored" onClick={() => { track("repurchase", { id: p.id }); update({ ...s, start: { ...s.start, [p.id]: t } }); }} className="rounded-lg bg-ink px-3 py-1.5 font-medium text-white hover:bg-[#2C3644]">
+                <a href={buyUrl(p.goodsNo)} target="_blank" rel="noopener noreferrer sponsored" onClick={() => { track("repurchase", { id: p.id }); update({ ...s, start: { ...s.start, [p.id]: t } }); }} className="rounded-lg bg-teal-deep px-3 py-1.5 font-medium text-white hover:bg-teal-dark">
                   다 썼어요, 재구매
                 </a>
               </div>

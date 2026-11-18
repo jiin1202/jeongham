@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
+import FitLine from "@/components/FitLine";
 import { useRouter, useSearchParams } from "next/navigation";
 import { buildRoutine, decodeAnswers, encodeAnswers, pickFor, scoreProduct, type Pick } from "@/lib/engine";
 import { skinTypeLabel, type Answers } from "@/lib/quiz";
@@ -122,11 +123,11 @@ function ResultInner() {
       </h1>
       <div className="mt-5 flex flex-wrap gap-2 text-[13px]">
         {answers.concerns.map((c) => (
-          <span key={c} className="rounded-full bg-fog px-3 py-1.5 font-medium">
+          <span key={c} className="rounded-full bg-teal-wash px-3 py-1.5 font-semibold text-teal-deep">
             {concernLabel[c]} 고민
           </span>
         ))}
-        {routine.sensitive && <span className="rounded-full bg-fog px-3 py-1.5 font-medium">예민한 편</span>}
+        {routine.sensitive && <span className="rounded-full bg-teal-wash px-3 py-1.5 font-semibold text-teal-deep">예민한 편</span>}
         <span className="rounded-full bg-fog px-3 py-1.5 font-medium">
           예산 {budget >= 999999 ? "제한 없음" : `${budget / 10000}만 원 이하`}
         </span>
@@ -146,7 +147,7 @@ function ResultInner() {
               <div className="flex gap-4">
                 <Link href={`/p/${p.id}/`} className="relative shrink-0 self-start" aria-label={`${p.brand} ${p.name} 성분 보기`}>
                   <ProductThumb src={p.image} brand={p.brand} name={p.name} className="h-[88px] w-[88px] sm:h-[120px] sm:w-[120px]" priority={idx < 2} />
-                  <span className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-ink text-[13px] font-bold text-white ring-2 ring-white">
+                  <span className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-teal-deep text-[13px] font-bold text-white ring-2 ring-white">
                     {idx + 1}
                   </span>
                 </Link>
@@ -164,6 +165,7 @@ function ResultInner() {
                   <h2 className="mt-1 text-[19px] font-bold leading-snug tracking-[-0.02em]">
                     <span className="text-steel">{p.brand}</span> {p.name}
                   </h2>
+                  <FitLine p={p} className="mt-1.5" />
                   <p className="mt-0.5 text-[13px] text-mist">
                     {p.volumeEstimated ? "용량 정보 없음" : `${p.volume}${/g/i.test(p.volumeText) ? "g" : "ml"}`}
                     {p.units > 1 ? ` × ${p.units}개 구성` : ""}
@@ -183,7 +185,7 @@ function ResultInner() {
                     <Link href={`/p/${p.id}/`} className="rounded-lg border border-line px-3 py-2 font-medium hover:border-ink">
                       성분 보기
                     </Link>
-                    <a onClick={() => track("click_buy", { id: p.id })} href={buyUrl(p.goodsNo)} target="_blank" rel="noopener noreferrer sponsored" className="rounded-lg bg-ink px-3 py-2 font-medium text-white hover:bg-[#2C3644]">
+                    <a onClick={() => track("click_buy", { id: p.id })} href={buyUrl(p.goodsNo)} target="_blank" rel="noopener noreferrer sponsored" className="rounded-lg bg-teal-deep px-3 py-2 font-medium text-white hover:bg-teal-dark">
                       올리브영에서 보기
                     </a>
                     <button type="button" onClick={() => setOpen(open === idx ? null : idx)} aria-expanded={open === idx} className="rounded-lg px-3 py-2 font-medium text-steel hover:text-ink">
@@ -206,7 +208,8 @@ function ResultInner() {
                           <span className="flex min-w-0 items-center gap-3 text-[14.5px]">
                             <ProductThumb src={ap.image} brand={ap.brand} name={ap.name} size={48} />
                             <span className="min-w-0">
-                              <span className="text-steel">{ap.brand}</span> <span className="font-semibold">{ap.name}</span>
+                              <span className="block"><span className="text-steel">{ap.brand}</span> <span className="font-semibold">{ap.name}</span></span>
+                              <FitLine p={ap} className="mt-1" />
                             </span>
                           </span>
                           <span className="shrink-0 text-[13.5px] tabular-nums text-steel">{won(ap.price)}로 바꾸기</span>

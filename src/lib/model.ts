@@ -187,3 +187,102 @@ export function cautions(p: Product) {
     .filter((h) => h.group !== "alcohol" || h.pos < 6)
     .filter((h) => (seen.has(h.group) ? false : (seen.add(h.group), true)));
 }
+
+// ───────────── 한 줄 특성("이런 피부에") · 추천 대상 · 사용법 ─────────────
+// 제조사 표기(사용 대상 피부)와 성분 위치로만 판단. 근거 없는 효능 문구는 만들지 않음.
+
+/** 성분표에서 가장 앞쪽에 있는 효능 성분이 겨냥하는 고민 = 이 제품의 대표 고민 */
+export function primaryConcern(p: Product): Concern | undefined {
+  const order = keyBenefits(p);
+  for (const h of order) {
+    const c = p.concerns.find((c) => CONCERN_GROUPS[c].includes(h.group) && (c !== "dry" || h.pos < 10));
+    if (c) return c;
+  }
+  return p.concerns[0];
+}
+
+const SOOTHE: IngGroup[] = ["cica", "panthenol", "allantoin", "betaglucan", "ceramide"];
+
+/** 피부 상태 형용사: 예민한 / 건조한 / 번들거리는 / "" */
+function skinState(p: Product): "예민한" | "건조한" | "번들거리는" | "" {
+  const soothingEarly = p.hits.some((h) => SOOTHE.includes(h.group) && h.pos < 10);
+  if (p.forSensitive || (soothingEarly && p.irritation === 0 && p.activeStrong.length === 0)) return "예민한";
+  if (!p.allSkin) {
+    const oilyOnly = p.skin.every((s) => s === "oily" || s === "combo");
+    const dryOnly = p.skin.every((s) => s === "dry" || s === "normal");
+    if (oilyOnly) return "번들거리는";
+    if (dryOnly) return "건조한";
+  }
+  if (p.texture === "rich") return "건조한";
+  if (p.texture === "light" && (p.concerns.includes("oil") || p.concerns.includes("pore"))) return "번들거리는";
+  return "";
+}
+
+const CONNECT: Record<string, string> = { 예민한: "예민하고", 건조한: "건조하고", 번들거리는: "번들거리고" };
+const PHRASE: Record<Concern, string> = {
+  trouble: "여드름성",
+  pore: "모공 넓은",
+  oil: "피지 많은",
+  dry: "속당김 있는",
+  redness: "붉은기 있는",
+  tone: "톤이 칙칙한",
+  aging: "탄력이 떨어진",
+};
+
+/** 예: "건조한 여드름성 피부", "번들거리고 모공 넓은 피부", "예민한 피부" */
+export function fitLine(p: Product): string {
+  const s = skinState(p);
+  const c = primaryConcern(p);
+  if (p.category === "sun") {
+    const pref = p.sunFilter === "mineral" ? "눈가 시림이 싫은" : p.sunFilter === "chemical" ? "백탁이 싫은" : p.sunForm === "stick" ? "손에 묻히기 싫은" : "";
+    const base = s ? `${s} 피부` : "모든 피부";
+    return pref ? `${pref} ${base}` : base;
+  }
+  if (!c) return s ? `${s} 피부` : "모든 피부";
+  if (c === "trouble") return `${s ? s + " " : ""}여드름성 피부`;
+  if (p.category === "cleanser" && c === "dry") return s === "예민한" ? "세안 후 당기는 예민한 피부" : "세안 후 당기는 피부";
+  if (!s) return `${PHRASE[c]} 피부`;
+  // 같은 뜻 반복 방지
+  if (s === "번들거리는" && c === "oil") return "피지 많은 지성 피부";
+  if (s === "건조한" && c === "dry") return "건조하고 당기는 피부";
+  if (s === "예민한" && c === "redness") return "붉고 예민한 피부";
+  return `${CONNECT[s]} ${PHRASE[c]} 피부`;
+}
+
+export type Advice = { good: string[]; careful: string[]; howto: string[] };
+
+/** 상세 페이지 '이런 분께 추천 / 이런 분은 주의 / 사용법' */
+export function advice(p: Product): Advice {
+  const good: string[] = [];
+  const careful: string[] = [];
+  const howto: string[] = [];
+  const skinNames: Record<SkinType, string> = { dry: "건성", oily: "지성", combo: "복합성", normal: "중성" };
+
+  good.push(p.allSkin ? "제조사 표기: 모든 피부 타입" : `제조사 표기: ${p.skin.map((s) => skinNames[s]).join("·")} 피부`);
+  const cs = [primaryConcern(p), ...p.concerns].filter((x, i, a): x is Concern => !!x && a.indexOf(x) === i).slice(0, 3);
+  if (cs.length) good.push(`${cs.map((c) => concernLabel[c]).join(", ")} 고민`);
+  if (p.forSensitive) good.push("제조사가 민감 피부용으로 표기");
+  else if (p.fragranceFree && p.irritation === 0) good.push("향료·정유가 없어 향에 예민해도 무난");
+
+  if (p.activeStrong.some((x) => x === "aha" || x === "bha") && p.category !== "cleanser") careful.push("각질 케어 성분이 앞쪽에 있어요. 처음 쓰거나 예민하면 이틀에 한 번 저녁부터");
+  if (p.activeStrong.includes("retinoid")) careful.push("레티노이드가 있어요. 저녁에만, 각질 케어 제품과 같은 날 겹치지 않게");
+  if (p.groups.has("fragrance") || p.groups.has("essentialoil")) careful.push("향료·정유가 있어 향에 예민하면 피하는 게 좋아요");
+  if (p.hits.some((h) => h.group === "alcohol" && h.pos < 6)) careful.push("에탄올이 앞쪽에 있어 건조·예민 피부는 따가울 수 있어요");
+  if (p.texture === "rich" && p.category !== "cleanser") careful.push("제형이 무거운 편이라 지성은 답답할 수 있어요");
+  if (p.groups.has("clay") && p.hits.some((h) => h.group === "clay" && h.pos < 10)) careful.push("클레이가 앞쪽에 있어 건성은 당길 수 있어요");
+  if (p.category === "sun" && p.sunFilter === "chemical") careful.push("유기자차라 눈가에 닿으면 시릴 수 있어요");
+  if (p.category === "sun" && p.sunFilter === "mineral") careful.push("무기자차라 백탁이 생길 수 있어요");
+
+  const use: Record<Category, string> = {
+    cleanser: "아침·저녁 하루 두 번, 미지근한 물로 손끝으로 문질러 씻어요",
+    toner: "세안 직후 손바닥에 덜어 두드려 흡수시켜요",
+    serum: "토너 다음, 보습제 전에 얇게 펴 발라요",
+    moisturizer: "세럼 다음 마지막 단계에, 아침엔 선크림 전에 발라요",
+    allinone: "세안 후 이것 하나로 끝. 아침엔 선크림을 위에 덧발라요",
+    sun: "아침 스킨케어 마지막에, 얼굴엔 손가락 두 마디 길이만큼 넉넉히. 밖에 오래 있으면 2시간마다 덧발라요",
+  };
+  howto.push(use[p.category]);
+  if (p.activeStrong.includes("retinoid")) howto.push("얼굴 전체에 완두콩 한 알 크기면 충분해요");
+  if (p.category !== "sun" && (cs.includes("trouble") || cs.includes("tone"))) howto.push("효과는 최소 4주는 써보고 판단하세요");
+  return { good, careful, howto };
+}

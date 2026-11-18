@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
+import FitLine from "@/components/FitLine";
 import { byId, categoryLabel, products, type Category, type Product } from "@/lib/model";
 import { checkProducts } from "@/lib/engine";
 import { loadAnswers, loadMine, saveMine } from "@/lib/store";
@@ -100,6 +101,7 @@ export default function MinePage() {
                         {categoryLabel[p.category]}, {p.brand}
                       </span>
                       <span className="block truncate text-[15px] font-semibold">{p.name}</span>
+                      <FitLine p={p} className="mt-1" />
                     </span>
                   </span>
                   <span className={`shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-semibold ${on ? "bg-teal text-white" : "border border-line text-ink"}`}>
@@ -132,6 +134,7 @@ export default function MinePage() {
                           {categoryLabel[p.category]}, {p.brand}
                         </p>
                         <Link href={`/p/${p.id}/`} className="text-[16px] font-bold hover:underline">{p.name}</Link>
+                        <div><FitLine p={p} className="mt-1" /></div>
                       </div>
                       <span className={`shrink-0 rounded-md px-2.5 py-1 text-[13px] font-bold ${color[r.level]}`}>{r.title}</span>
                     </div>

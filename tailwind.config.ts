@@ -10,7 +10,7 @@ const config: Config = {
         mist: "#97A1AE",
         fog: "#EEF1F4",
         line: "#DCE1E7",
-        teal: { DEFAULT: "#00A19B", deep: "#007C78", wash: "#E1F4F2" },
+        teal: { DEFAULT: "#00A19B", deep: "#007C78", dark: "#00615E", wash: "#E1F4F2" },
         amber: { DEFAULT: "#B86E00", wash: "#FBF0DD" },
         rose: { DEFAULT: "#C8402F", wash: "#FBE6E2" },
       },

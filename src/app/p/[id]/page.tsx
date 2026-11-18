@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GROUPS } from "@/data/ingredients";
-import { RESEARCH_DATE, byId, cautions, categoryLabel, concernLabel, keyBenefits, products } from "@/lib/model";
+import { RESEARCH_DATE, advice, fitLine, byId, cautions, categoryLabel, keyBenefits, products } from "@/lib/model";
+import FitLine from "@/components/FitLine";
 import { daysToEmpty } from "@/lib/engine";
 import ProductActions from "./ProductActions";
 import ProductThumb from "@/components/ProductThumb";
@@ -30,6 +31,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const totalVol = p.volume * p.units;
   const per10 = totalVol ? Math.round((price / totalVol) * 10) : null;
   const benefits = keyBenefits(p);
+  const adv = advice(p);
+  const fit = fitLine(p);
   const warn = cautions(p);
   const posGroup = new Map<number, (typeof p.hits)[number]>();
   p.hits.forEach((h) => {
@@ -51,12 +54,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       <header className="mt-4 grid gap-6 sm:grid-cols-[200px_1fr] sm:gap-8 lg:grid-cols-[240px_1fr_270px]">
         <ProductThumb src={p.image} brand={p.brand} name={p.name} priority className="mx-auto h-[220px] w-[220px] sm:mx-0 sm:h-[200px] sm:w-[200px] lg:h-[240px] lg:w-[240px]" />
         <div>
-          <p className="text-[15px] font-semibold text-steel">{p.brand}</p>
-          <h1 className="mt-1 text-[30px] font-extrabold leading-tight tracking-[-0.035em] sm:text-[36px]">{p.name}</h1>
-          <div className="mt-4 flex flex-wrap gap-1.5 text-[13px]">
-            {p.concerns.map((c) => (
-              <span key={c} className="rounded-full bg-teal-wash px-3 py-1 font-medium text-teal-deep">{concernLabel[c]}</span>
-            ))}
+          <p className="text-[13px] font-semibold text-teal-deep">{categoryLabel[p.category]}</p>
+          <p className="mt-1 text-[15px] font-semibold text-steel">{p.brand}</p>
+          <h1 className="mt-0.5 text-[28px] font-extrabold leading-tight tracking-[-0.035em] sm:text-[34px]">{p.name}</h1>
+          <FitLine p={p} size="lg" className="mt-3" />
+          <div className="mt-3 flex flex-wrap gap-1.5 text-[13px]">
             {p.fragranceFree && <span className="rounded-full bg-fog px-3 py-1 text-steel">향료 무첨가</span>}
             {p.forMen && <span className="rounded-full bg-fog px-3 py-1 text-steel">남성용</span>}
             {p.functional && !/해당\s*없음|해당사항\s*없음/.test(p.functional) && <span className="rounded-full bg-fog px-3 py-1 text-steel">기능성 화장품</span>}
@@ -91,69 +93,83 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
       <ProductActions id={p.id} goodsNo={p.goodsNo} fit />
 
-      <section className="mt-12 grid gap-10 sm:grid-cols-2">
-        <div>
-          <h2 className="text-[19px] font-bold tracking-[-0.02em]">들어 있는 핵심 성분</h2>
-          {benefits.length === 0 ? (
-            <p className="mt-3 text-[14px] text-steel">정함 성분 사전에 있는 효능 성분은 찾지 못했어요.</p>
-          ) : (
-            <ul className="mt-4 space-y-4">
-              {benefits.map((h) => (
-                <li key={h.group}>
-                  <p className="text-[15px] font-semibold">
-                    {GROUPS[h.group].label}
-                    <span className="ml-2 text-[12.5px] font-normal text-steel">{h.pos + 1}번째 · {h.ing}</span>
-                  </p>
-                  <p className="mt-0.5 text-[14px] leading-6 text-steel">{GROUPS[h.group].note}</p>
-                </li>
-              ))}
-            </ul>
-          )}
+      <section className="mt-8 overflow-hidden rounded-3xl border border-teal/30">
+        <div className="bg-teal-deep px-6 py-5 text-white sm:px-8">
+          <p className="text-[13px] font-semibold text-white/75">이런 피부에 맞아요</p>
+          <p className="mt-1 text-[22px] font-extrabold tracking-[-0.03em] sm:text-[26px]">{fit}</p>
         </div>
-        <div>
-          <h2 className="text-[19px] font-bold tracking-[-0.02em]">예민하면 확인할 성분</h2>
-          {warn.length === 0 ? (
-            <p className="mt-3 text-[14px] leading-6 text-steel">향료, 알레르기 유발 향 성분, 앞쪽 에탄올, 에센셜 오일, 멘톨이 없어요.</p>
-          ) : (
-            <ul className="mt-4 space-y-4">
-              {warn.map((h) => (
-                <li key={h.group}>
-                  <p className="text-[15px] font-semibold">
-                    {GROUPS[h.group].label}
-                    <span className="ml-2 text-[12.5px] font-normal text-steel">{h.pos + 1}번째 · {h.ing}</span>
-                  </p>
-                  <p className="mt-0.5 text-[14px] leading-6 text-steel">{GROUPS[h.group].note}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-          {p.category === "sun" && p.sunFilter && (
-            <p className="mt-5 rounded-xl bg-fog px-4 py-3 text-[14px] leading-6">
-              자외선 차단 방식: <b>{p.sunFilter === "mineral" ? "무기자차" : p.sunFilter === "chemical" ? "유기자차" : "혼합자차"}</b>
-              <span className="block text-steel">{p.sunFilter === "chemical" ? "백탁이 적고 가벼운 편이지만 눈가에 닿으면 시릴 수 있어요." : p.sunFilter === "mineral" ? "눈 시림이 덜한 편이지만 백탁이 생길 수 있어요." : "두 방식을 섞어 백탁과 눈 시림을 줄인 타입이에요."}</span>
-            </p>
-          )}
+        <div className="grid gap-6 bg-white px-6 py-6 sm:grid-cols-3 sm:px-8">
+          {[
+            { t: "추천 대상", items: adv.good, tone: "text-teal-deep" },
+            { t: "이런 분은 주의", items: adv.careful.length ? adv.careful : ["크게 주의할 성분은 없어요"], tone: "text-amber" },
+            { t: "이렇게 쓰세요", items: adv.howto, tone: "text-ink" },
+          ].map((b) => (
+            <div key={b.t}>
+              <h2 className={`text-[14px] font-bold ${b.tone}`}>{b.t}</h2>
+              <ul className="mt-2 space-y-1.5 text-[14px] leading-6">
+                {b.items.map((x) => (
+                  <li key={x} className="relative pl-3.5 before:absolute before:left-0 before:top-[0.7em] before:h-1 before:w-1 before:rounded-full before:bg-current">{x}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </section>
 
       <section className="mt-12">
-        <h2 className="text-[19px] font-bold tracking-[-0.02em]">전성분 {p.ings.length}개</h2>
-        <p className="mt-1 text-[13.5px] text-steel">함량이 많은 순서예요. 1% 이하 성분은 순서가 바뀔 수 있어요.</p>
-        <ol className="mt-4 flex flex-wrap gap-1.5 text-[13.5px]">
-          {p.ings.map((ing, i) => {
-            const h = posGroup.get(i);
-            const kind = h ? GROUPS[h.group].kind : null;
-            return (
-              <li
-                key={i}
-                title={h ? GROUPS[h.group].label : undefined}
-                className={`rounded-md px-2 py-1 ${kind === "benefit" ? "bg-teal-wash text-teal-deep" : kind === "caution" ? "bg-amber-wash text-amber" : kind === "uv" ? "bg-fog font-medium" : "bg-fog/60 text-steel"}`}
-              >
-                {ing}
-              </li>
-            );
-          })}
-        </ol>
+        <h2 className="text-[19px] font-bold tracking-[-0.02em]">꼭 확인할 성분</h2>
+        <p className="mt-1 text-[13.5px] text-steel">전성분 {p.ings.length}개 중 효과와 자극에 영향을 주는 것만 골랐어요. 순서가 앞일수록 많이 들어 있어요.</p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {benefits.slice(0, 4).map((h) => (
+            <div key={h.group} className="rounded-2xl bg-teal-wash/60 p-4">
+              <p className="flex items-baseline justify-between gap-3">
+                <span className="text-[15.5px] font-bold text-teal-deep">{GROUPS[h.group].label}</span>
+                <span className="shrink-0 text-[12px] font-semibold text-teal-deep/70">{h.pos < 5 ? "주성분" : h.pos < 15 ? "많이 들어 있음" : "소량"}</span>
+              </p>
+              <p className="mt-1 text-[14px] leading-6 text-ink/80">{GROUPS[h.group].note}</p>
+            </div>
+          ))}
+          {warn.map((h) => (
+            <div key={h.group} className="rounded-2xl bg-amber-wash p-4">
+              <p className="flex items-baseline justify-between gap-3">
+                <span className="text-[15.5px] font-bold text-amber">{GROUPS[h.group].label}</span>
+                <span className="shrink-0 text-[12px] font-semibold text-amber/80">주의</span>
+              </p>
+              <p className="mt-1 text-[14px] leading-6 text-ink/80">{GROUPS[h.group].note}</p>
+            </div>
+          ))}
+          {p.category === "sun" && p.sunFilter && (
+            <div className="rounded-2xl bg-fog p-4">
+              <p className="text-[15.5px] font-bold">{p.sunFilter === "mineral" ? "무기자차" : p.sunFilter === "chemical" ? "유기자차" : "혼합자차"}</p>
+              <p className="mt-1 text-[14px] leading-6 text-ink/80">{p.sunFilter === "chemical" ? "백탁이 적고 가벼운 편이지만 눈가에 닿으면 시릴 수 있어요." : p.sunFilter === "mineral" ? "눈 시림이 덜한 편이지만 백탁이 생길 수 있어요." : "두 방식을 섞어 백탁과 눈 시림을 줄인 타입이에요."}</p>
+            </div>
+          )}
+          {benefits.length === 0 && warn.length === 0 && <p className="text-[14px] text-steel">정함 성분 사전에 있는 효능·주의 성분을 찾지 못했어요.</p>}
+        </div>
+        {benefits.length > 4 && (
+          <p className="mt-3 text-[13px] text-steel">그 밖에 {benefits.slice(4).map((h) => GROUPS[h.group].label).join(", ")}도 들어 있어요.</p>
+        )}
+
+        <details className="group mt-6 rounded-2xl border border-line">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-[14.5px] font-semibold">
+            전성분 {p.ings.length}개 모두 보기
+            <span className="text-steel transition-transform group-open:rotate-180" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="border-t border-line px-5 py-4">
+            <p className="text-[13px] text-steel">함량이 많은 순서예요. 1% 이하 성분은 순서가 바뀔 수 있어요. 색이 있는 칸이 위에서 설명한 성분이에요.</p>
+            <ol className="mt-3 flex flex-wrap gap-1.5 text-[13px]">
+              {p.ings.map((ing, i) => {
+                const h = posGroup.get(i);
+                const kind = h ? GROUPS[h.group].kind : null;
+                return (
+                  <li key={i} title={h ? GROUPS[h.group].label : undefined} className={`rounded-md px-2 py-1 ${kind === "benefit" ? "bg-teal-wash text-teal-deep" : kind === "caution" ? "bg-amber-wash text-amber" : kind === "uv" ? "bg-fog font-medium" : "bg-fog/60 text-steel"}`}>
+                    {ing}
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        </details>
       </section>
 
       <section className="mt-12">
@@ -184,6 +200,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   <span className="min-w-0">
                     <span className="block text-[13px] text-steel">{x.brand}</span>
                     <span className="block truncate text-[15px] font-semibold">{x.name}</span>
+                    <FitLine p={x} className="mt-1" />
                     <span className="mt-1 block text-[13.5px] tabular-nums text-steel">{won(x.salePrice ?? x.price)}</span>
                   </span>
                 </Link>

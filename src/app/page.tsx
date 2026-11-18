@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
+import FitLine from "@/components/FitLine";
 import { products } from "@/lib/model";
 import { buildRoutine } from "@/lib/engine";
 import type { Answers } from "@/lib/quiz";
@@ -67,15 +68,15 @@ export default function Home() {
           <p className="mt-5 text-[13px] text-mist">로그인 없이, 무료로 쓸 수 있어요.</p>
         </div>
 
-        <div aria-hidden="true" className="relative overflow-hidden rounded-[28px] border border-line bg-fog/50 p-6 sm:p-8">
-          <div className="flex flex-wrap gap-x-3 gap-y-2 text-[13px] leading-6 text-ink sm:text-[14px]">
+        <div aria-hidden="true" className="relative overflow-hidden rounded-[28px] bg-teal-deep p-6 sm:p-8">
+          <div className="flex flex-wrap gap-x-3 gap-y-2 text-[13px] leading-6 text-white sm:text-[14px]">
             {noise.map((p, i) => (
               <span key={p.id} className="noise-word" style={{ animationDelay: `${0.4 + (i % 9) * 0.06}s` }}>
                 {p.brand} {p.name}
               </span>
             ))}
           </div>
-          <div className="absolute inset-x-6 bottom-6 rounded-2xl bg-white p-5 shadow-[0_12px_40px_-12px_rgba(28,36,48,0.28)] sm:inset-x-8 sm:bottom-8">
+          <div className="absolute inset-x-6 bottom-6 rounded-2xl bg-white p-5 shadow-[0_16px_48px_-12px_rgba(0,40,38,0.55)] sm:inset-x-8 sm:bottom-8">
             <p className="text-[13px] text-steel">복합성 피부, 트러블·번들거림, 3단계 {routine.total.toLocaleString()}원</p>
             <ol className="mt-3 space-y-2.5">
               {picked.map((p, i) => (
@@ -84,19 +85,22 @@ export default function Home() {
                     {i + 1}
                   </span>
                   <ProductThumb src={p.image} brand={p.brand} name={p.name} size={40} priority />
-                  <span className="truncate text-[15px] font-semibold">
-                    {p.brand} {p.name}
+                  <span className="min-w-0">
+                    <span className="block truncate text-[15px] font-semibold">
+                      {p.brand} {p.name}
+                    </span>
+                    <FitLine p={p} className="mt-0.5" />
                   </span>
                 </li>
               ))}
             </ol>
           </div>
-          <div className="h-[280px] sm:h-[240px]" />
+          <div className="h-[340px] sm:h-[300px]" />
         </div>
       </section>
 
       {/* 조사 근거 */}
-      <section className="border-y border-line bg-fog/50">
+      <section className="bg-teal-wash/70">
         <div className="page grid gap-12 py-20 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
             <h2 className="text-[30px] font-extrabold leading-tight tracking-[-0.035em] sm:text-[36px]">
@@ -144,12 +148,12 @@ export default function Home() {
 
       {/* CTA */}
       <section className="page">
-        <div className="flex flex-col items-start justify-between gap-6 rounded-[28px] bg-ink px-8 py-12 text-white sm:flex-row sm:items-center sm:px-12">
+        <div className="flex flex-col items-start justify-between gap-6 rounded-[28px] bg-teal-deep px-8 py-12 text-white sm:flex-row sm:items-center sm:px-12">
           <div>
             <h2 className="text-[26px] font-extrabold tracking-[-0.03em] sm:text-[30px]">오늘 밤 바를 것까지 1분이면 정해져요</h2>
-            <p className="mt-2 text-[15px] text-white/60">추천 기준은 모두 공개해요. 광고비 받고 순위를 바꾸지 않아요.</p>
+            <p className="mt-2 text-[15px] text-white/80">추천 기준은 모두 공개해요. 광고비 받고 순위를 바꾸지 않아요.</p>
           </div>
-          <Link href="/check" className="btn h-14 shrink-0 bg-teal px-7 text-[16px] text-white hover:bg-teal-deep">
+          <Link href="/check" className="btn h-14 shrink-0 bg-white px-7 text-[16px] text-teal-deep hover:bg-teal-wash">
             1분 진단 시작
           </Link>
         </div>
