@@ -40,8 +40,6 @@ function Bars({ rows }: { rows: { label: string; v: number }[] }) {
 export default function Home() {
   const routine = buildRoutine(SAMPLE);
   const picked = routine.picks.map((x) => x.product);
-  const pickedIds = new Set(picked.map((p) => p.id));
-  const noise = products.filter((p) => !pickedIds.has(p.id)).slice(0, 30);
 
   return (
     <>
@@ -68,15 +66,21 @@ export default function Home() {
           <p className="mt-5 text-[13px] text-mist">로그인 없이, 무료로 쓸 수 있어요.</p>
         </div>
 
-        <div aria-hidden="true" className="relative overflow-hidden rounded-[28px] bg-teal-deep p-6 sm:p-8">
-          <div className="flex flex-wrap gap-x-3 gap-y-2 text-[13px] leading-6 text-white sm:text-[14px]">
-            {noise.map((p, i) => (
-              <span key={p.id} className="noise-word" style={{ animationDelay: `${0.4 + (i % 9) * 0.06}s` }}>
-                {p.brand} {p.name}
-              </span>
+        <div aria-hidden="true" className="rounded-[28px] bg-teal-deep p-6 sm:p-8">
+          <p className="text-[13px] font-semibold text-white/70">이렇게 답하면</p>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {["이마·코만 번들거려요", "트러블·번들거림", "가끔 예민해요", "면도 2~3일에 한 번", "최소 단계로", "8만 원 이하"].map((a, i) => (
+              <li
+                key={a}
+                className="pick-word rounded-full bg-white/12 px-3.5 py-1.5 text-[14px] font-medium text-white ring-1 ring-white/20"
+                style={{ animationDelay: `${0.3 + i * 0.12}s` }}
+              >
+                {a}
+              </li>
             ))}
-          </div>
-          <div className="absolute inset-x-6 bottom-6 rounded-2xl bg-white p-5 shadow-[0_16px_48px_-12px_rgba(0,40,38,0.55)] sm:inset-x-8 sm:bottom-8">
+          </ul>
+          <p className="mt-7 text-[13px] font-semibold text-white/70">정함이 이렇게 정해요</p>
+          <div className="mt-3 rounded-2xl bg-white p-5 shadow-[0_16px_48px_-12px_rgba(0,40,38,0.55)]">
             <p className="text-[13px] text-steel">복합성 피부, 트러블·번들거림, 3단계 {routine.total.toLocaleString()}원</p>
             <ol className="mt-3 space-y-2.5">
               {picked.map((p, i) => (
@@ -95,7 +99,6 @@ export default function Home() {
               ))}
             </ol>
           </div>
-          <div className="h-[340px] sm:h-[300px]" />
         </div>
       </section>
 
@@ -109,10 +112,10 @@ export default function Home() {
               막히는 지점은 &lsquo;선택&rsquo;이었어요
             </h2>
             <p className="mt-5 max-w-sm text-[15px] leading-7 text-steel">
-              20대 남성 31명에게 직접 물었어요. 매장에서 묻기 민망하다는 답은 6%뿐이었고, 절반 가까이가 비교하다 지친다고 했어요.
+              20대 남성에게 직접 물었어요. 매장에서 묻기 민망하다는 답은 6%뿐이었고, 절반 가까이가 비교하다 지친다고 했어요.
             </p>
             <p className="mt-6 text-[12px] leading-5 text-mist">
-              정함 자체 설문, 2026년 11월 16~17일, 20대 남성 31명(편의표본)
+              정함 자체 설문, 2026년 11월 16일부터 11월 20일(금)까지 진행, 20대 남성 대상 편의표본, 중간 집계 기준
             </p>
           </div>
           <div className="grid gap-10 sm:grid-cols-2">
