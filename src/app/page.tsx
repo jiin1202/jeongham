@@ -40,6 +40,7 @@ function Bars({ rows }: { rows: { label: string; v: number }[] }) {
 export default function Home() {
   const routine = buildRoutine(SAMPLE);
   const picked = routine.picks.map((x) => x.product);
+  const wall = products.slice(0, 90);
 
   return (
     <>
@@ -99,6 +100,34 @@ export default function Home() {
               ))}
             </ol>
           </div>
+        </div>
+      </section>
+
+      {/* 만든 이유 */}
+      <section className="relative overflow-hidden bg-teal-dark">
+        <div aria-hidden="true" className="absolute inset-0 select-none">
+          <div className="flex flex-wrap content-start gap-x-4 gap-y-2 p-6 text-[13px] leading-6 text-white/25 sm:text-[15px]">
+            {wall.map((p, i) => (
+              <span key={p.id} className={i % 7 === 0 ? "text-white/45" : ""}>
+                {p.brand} {p.name}
+              </span>
+            ))}
+          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,97,94,0.97)_0%,rgba(0,97,94,0.9)_38%,rgba(0,97,94,0.35)_75%,rgba(0,97,94,0)_100%)]" />
+        </div>
+        <div className="page relative py-28 text-center sm:py-36">
+          <h2 className="mx-auto max-w-2xl text-[32px] font-extrabold leading-[1.2] tracking-[-0.045em] text-white sm:text-[48px]">
+            너무 많은 제품,
+            <br />
+            도대체 뭘 사야 할지 모르겠다면?
+          </h2>
+          <p className="mx-auto mt-6 max-w-md text-[16px] leading-7 text-white/80">
+            그래서 정함을 만들었어요. 성분표 비교는 저희가 할게요.
+            내 피부에 맞는 루틴 하나만 받아 가세요.
+          </p>
+          <Link href="/check" className="mt-9 inline-flex h-14 items-center rounded-2xl bg-white px-7 text-[16px] font-bold text-teal-dark transition-colors hover:bg-teal-wash">
+            내 루틴 정하기
+          </Link>
         </div>
       </section>
 
