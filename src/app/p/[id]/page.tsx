@@ -56,7 +56,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       <header className="mt-4 grid gap-6 sm:grid-cols-[200px_1fr] sm:gap-8 lg:grid-cols-[240px_1fr_270px]">
         <ProductThumb src={p.image} brand={p.brand} name={p.name} priority className="mx-auto h-[220px] w-[220px] sm:mx-0 sm:h-[200px] sm:w-[200px] lg:h-[240px] lg:w-[240px]" />
         <div>
-          <p className="text-[13px] font-semibold text-teal-deep">{categoryLabel[p.category]}</p>
+          <p className="text-[13px] font-semibold text-lemon-ink">{categoryLabel[p.category]}</p>
           <p className="mt-1 text-[15px] font-semibold text-steel">{p.brand}</p>
           <h1 className="mt-0.5 text-[28px] font-extrabold leading-tight tracking-[-0.035em] sm:text-[34px]">{p.name}</h1>
           <FitLine p={p} size="lg" className="mt-3" />
@@ -96,14 +96,14 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
       <ProductActions id={p.id} goodsNo={p.goodsNo} fit />
 
-      <section className="mt-8 overflow-hidden rounded-3xl border border-teal/30">
-        <div className="bg-teal-deep px-6 py-5 text-white sm:px-8">
-          <p className="text-[13px] font-semibold text-white/75">이런 피부에 맞아요</p>
+      <section className="mt-8 overflow-hidden rounded-3xl border border-lemon-deep/30">
+        <div className="bg-lemon px-6 py-5 text-ink sm:px-8">
+          <p className="text-[13px] font-semibold text-ink/60">이런 피부에 맞아요</p>
           <p className="mt-1 text-[22px] font-extrabold tracking-[-0.03em] sm:text-[26px]">{fit}</p>
         </div>
         <div className="grid gap-6 bg-white px-6 py-6 sm:grid-cols-3 sm:px-8">
           {[
-            { t: "추천 대상", items: adv.good, tone: "text-teal-deep" },
+            { t: "추천 대상", items: adv.good, tone: "text-lemon-ink" },
             { t: "이런 분은 주의", items: adv.careful.length ? adv.careful : ["크게 주의할 성분은 없어요"], tone: "text-amber" },
             { t: "이렇게 쓰세요", items: adv.howto, tone: "text-ink" },
           ].map((b) => (
@@ -126,7 +126,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           <ul className="mt-5 grid gap-3 lg:grid-cols-3">
             {pairs.map((x) => (
               <li key={x.partner.id} className="flex flex-col rounded-2xl border border-line p-4">
-                <p className="text-[13px] font-bold text-teal-deep">{x.title}</p>
+                <p className="text-[13px] font-bold text-lemon-ink">{x.title}</p>
                 <Link href={`/p/${x.partner.id}/`} className="mt-3 flex items-center gap-3 rounded-xl bg-fog/60 p-2.5 hover:bg-fog">
                   <ProductThumb src={x.partner.image} brand={x.partner.brand} name={x.partner.name} size={56} />
                   <span className="min-w-0">
@@ -150,10 +150,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         <p className="mt-1 text-[13.5px] text-steel">전성분 {p.ings.length}개 중 효과와 자극에 영향을 주는 것만 골랐어요. 순서가 앞일수록 많이 들어 있어요.</p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {benefits.slice(0, 4).map((h) => (
-            <div key={h.group} className="rounded-2xl bg-teal-wash/60 p-4">
+            <div key={h.group} className="rounded-2xl bg-lemon-wash/60 p-4">
               <p className="flex items-baseline justify-between gap-3">
-                <span className="text-[15.5px] font-bold text-teal-deep">{GROUPS[h.group].label}</span>
-                <span className="shrink-0 text-[12px] font-semibold text-teal-deep/70">{h.pos < 5 ? "주성분" : h.pos < 15 ? "많이 들어 있음" : "소량"}</span>
+                <span className="text-[15.5px] font-bold text-lemon-ink">{GROUPS[h.group].label}</span>
+                <span className="shrink-0 text-[12px] font-semibold text-lemon-ink/70">{h.pos < 5 ? "주성분" : h.pos < 15 ? "많이 들어 있음" : "소량"}</span>
               </p>
               <p className="mt-1 text-[14px] leading-6 text-ink/80">{GROUPS[h.group].note}</p>
             </div>
@@ -191,7 +191,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 const h = posGroup.get(i);
                 const kind = h ? GROUPS[h.group].kind : null;
                 return (
-                  <li key={i} title={h ? GROUPS[h.group].label : undefined} className={`rounded-md px-2 py-1 ${kind === "benefit" ? "bg-teal-wash text-teal-deep" : kind === "caution" ? "bg-amber-wash text-amber" : kind === "uv" ? "bg-fog font-medium" : "bg-fog/60 text-steel"}`}>
+                  <li key={i} title={h ? GROUPS[h.group].label : undefined} className={`rounded-md px-2 py-1 ${kind === "benefit" ? "bg-lemon-wash text-lemon-ink" : kind === "caution" ? "bg-amber-wash text-amber" : kind === "uv" ? "bg-fog font-medium" : "bg-fog/60 text-steel"}`}>
                     {ing}
                   </li>
                 );

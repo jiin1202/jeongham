@@ -40,7 +40,7 @@ function Stars({ value, onChange, label }: { value: number; onChange: (v: number
   return (
     <div role="radiogroup" aria-label={label} className="flex gap-1">
       {[1, 2, 3, 4, 5].map((n) => (
-        <button key={n} type="button" role="radio" aria-checked={value === n} aria-label={`${n}점`} onClick={() => onChange(n)} className={`h-9 w-9 rounded-lg text-[15px] font-bold ${n <= value ? "bg-teal text-white" : "bg-fog text-mist hover:text-ink"}`}>
+        <button key={n} type="button" role="radio" aria-checked={value === n} aria-label={`${n}점`} onClick={() => onChange(n)} className={`h-9 w-9 rounded-lg text-[15px] font-bold ${n <= value ? "bg-lemon-deep text-ink" : "bg-fog text-mist hover:text-ink"}`}>
           {n}
         </button>
       ))}
@@ -139,9 +139,9 @@ export default function MePage() {
         {(["am", "pm"] as const).map((k) => {
           const on = !!todayCheck[k];
           return (
-            <button key={k} type="button" aria-pressed={on} onClick={() => toggle(k)} className={`rounded-2xl border p-5 text-left transition-colors ${on ? "border-teal bg-teal-wash" : "border-line hover:border-ink"}`}>
+            <button key={k} type="button" aria-pressed={on} onClick={() => toggle(k)} className={`rounded-2xl border p-5 text-left transition-colors ${on ? "border-lemon-deep bg-lemon-wash" : "border-line hover:border-ink"}`}>
               <span className="block text-[14px] text-steel">{k === "am" ? "오늘 아침" : "오늘 저녁"}</span>
-              <span className={`mt-1 block text-[20px] font-bold ${on ? "text-teal-deep" : ""}`}>{on ? "발랐어요" : "아직이에요"}</span>
+              <span className={`mt-1 block text-[20px] font-bold ${on ? "text-lemon-ink" : ""}`}>{on ? "발랐어요" : "아직이에요"}</span>
             </button>
           );
         })}
@@ -153,7 +153,7 @@ export default function MePage() {
           const n = (c.am ? 1 : 0) + (c.pm ? 1 : 0);
           return (
             <li key={k} className="text-center">
-              <div className={`mx-auto h-9 w-full rounded-lg ${n === 2 ? "bg-teal" : n === 1 ? "bg-teal/40" : "bg-fog"}`} title={`${fmt(d)} ${n}/2`} />
+              <div className={`mx-auto h-9 w-full rounded-lg ${n === 2 ? "bg-lemon-deep" : n === 1 ? "bg-lemon-deep/40" : "bg-fog"}`} title={`${fmt(d)} ${n}/2`} />
               <span className="mt-1 block text-[11.5px] text-mist">{"일월화수목금토"[d.getDay()]}</span>
             </li>
           );
@@ -181,7 +181,7 @@ export default function MePage() {
                 <div className="flex min-w-0 items-center gap-3">
                   <ProductThumb src={p.image} brand={p.brand} name={p.name} size={56} />
                   <div className="min-w-0">
-                  <p className="text-[13px] font-semibold text-teal-deep">{categoryLabel[p.category]}</p>
+                  <p className="text-[13px] font-semibold text-lemon-ink">{categoryLabel[p.category]}</p>
                   <Link href={`/p/${p.id}/`} className="block truncate text-[16px] font-bold hover:underline">
                     <span className="text-steel">{p.brand}</span> {p.name}
                   </Link>
@@ -191,12 +191,12 @@ export default function MePage() {
                 <p className={`shrink-0 text-[15px] font-bold tabular-nums ${left <= 7 ? "text-rose" : ""}`}>{left === 0 ? "다 썼을 때예요" : `${left}일 남음`}</p>
               </div>
               <div className="mt-3 h-1.5 rounded-full bg-fog">
-                <div className={`h-1.5 rounded-full ${left <= 7 ? "bg-rose" : "bg-teal"}`} style={{ width: `${pct}%` }} />
+                <div className={`h-1.5 rounded-full ${left <= 7 ? "bg-rose" : "bg-lemon-deep"}`} style={{ width: `${pct}%` }} />
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2 text-[13.5px]">
                 <span className="mr-auto text-steel">예상 {fmt(end)}</span>
                 <button type="button" onClick={() => downloadIcs(p, new Date(end.getTime() - 3 * DAY))} className="rounded-lg border border-line px-3 py-1.5 font-medium hover:border-ink">캘린더에 알림 추가</button>
-                <a href={buyUrl(p.goodsNo)} target="_blank" rel="noopener noreferrer sponsored" onClick={() => { track("repurchase", { id: p.id }); update({ ...s, start: { ...s.start, [p.id]: t } }); }} className="rounded-lg bg-teal-deep px-3 py-1.5 font-medium text-white hover:bg-teal-dark">
+                <a href={buyUrl(p.goodsNo)} target="_blank" rel="noopener noreferrer sponsored" onClick={() => { track("repurchase", { id: p.id }); update({ ...s, start: { ...s.start, [p.id]: t } }); }} className="rounded-lg bg-lemon px-3 py-1.5 font-medium text-ink hover:bg-lemon-deep">
                   다 썼어요, 재구매
                 </a>
               </div>

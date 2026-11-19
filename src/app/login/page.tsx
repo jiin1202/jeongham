@@ -73,11 +73,11 @@ export default function LoginPage() {
 
       <form onSubmit={sendEmail} noValidate>
         <label htmlFor="em" className="text-[14px] font-semibold">이메일</label>
-        <input id="em" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="mt-2 h-12 w-full rounded-xl border border-line px-4 text-[16px] outline-none placeholder:text-mist focus:border-teal" />
+        <input id="em" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="mt-2 h-12 w-full rounded-xl border border-line px-4 text-[16px] outline-none placeholder:text-mist focus:border-lemon-deep" />
         <button type="submit" disabled={busy} className="btn-primary mt-3 h-12 w-full disabled:opacity-50">{busy ? "보내는 중…" : "로그인 링크 받기"}</button>
       </form>
       {msg && (
-        <p role="status" className={`mt-4 rounded-xl px-4 py-3 text-[14px] leading-6 ${msg.ok ? "bg-teal-wash text-teal-deep" : "bg-rose-wash text-rose"}`}>
+        <p role="status" className={`mt-4 rounded-xl px-4 py-3 text-[14px] leading-6 ${msg.ok ? "bg-lemon-wash text-lemon-ink" : "bg-rose-wash text-rose"}`}>
           {msg.t}
         </p>
       )}

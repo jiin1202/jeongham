@@ -22,7 +22,7 @@ export default function StandardPage() {
       <ol className="mt-10 space-y-6">
         {rules.map((r, i) => (
           <li key={r.t} className="flex gap-4">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-teal text-[14px] font-bold text-teal">{i + 1}</span>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-lemon-deep text-[14px] font-bold text-lemon-ink">{i + 1}</span>
             <div>
               <h2 className="text-[18px] font-bold">{r.t}</h2>
               <p className="mt-1 text-[15px] leading-7 text-steel">{r.d}</p>
@@ -53,7 +53,7 @@ export default function StandardPage() {
           {(Object.keys(GROUPS) as IngGroup[]).map((k) => (
             <div key={k} className="grid gap-1 py-3 sm:grid-cols-[150px_1fr] sm:gap-4">
               <dt className="font-semibold">
-                <span className={`mr-2 inline-block h-2 w-2 rounded-full align-middle ${GROUPS[k].kind === "caution" ? "bg-amber" : GROUPS[k].kind === "uv" ? "bg-mist" : "bg-teal"}`} aria-hidden="true" />
+                <span className={`mr-2 inline-block h-2 w-2 rounded-full align-middle ${GROUPS[k].kind === "caution" ? "bg-amber" : GROUPS[k].kind === "uv" ? "bg-mist" : "bg-lemon-deep"}`} aria-hidden="true" />
                 {GROUPS[k].label}
               </dt>
               <dd className="leading-6 text-steel">{GROUPS[k].note}</dd>

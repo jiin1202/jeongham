@@ -27,7 +27,7 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
             {b.list && (
               <ul className="mt-1 space-y-2">
                 {b.list.map((l) => (
-                  <li key={l} className="relative pl-5 before:absolute before:left-0 before:top-[0.8em] before:h-1.5 before:w-1.5 before:rounded-full before:bg-teal">{l}</li>
+                  <li key={l} className="relative pl-5 before:absolute before:left-0 before:top-[0.8em] before:h-1.5 before:w-1.5 before:rounded-full before:bg-lemon-deep">{l}</li>
                 ))}
               </ul>
             )}

@@ -29,7 +29,7 @@ function Bars({ rows }: { rows: { label: string; v: number }[] }) {
             <span className={`tabular-nums ${i === 0 ? "font-bold" : "text-steel"}`}>{r.v}%</span>
           </div>
           <div className="h-2 rounded-full bg-fog">
-            <div className={`h-2 rounded-full ${i === 0 ? "bg-teal" : "bg-mist/60"}`} style={{ width: `${r.v * 1.6}%` }} />
+            <div className={`h-2 rounded-full ${i === 0 ? "bg-lemon-deep" : "bg-mist/60"}`} style={{ width: `${r.v * 1.6}%` }} />
           </div>
         </li>
       ))}
@@ -53,8 +53,8 @@ export default function Home() {
             루틴은 정함.
           </h1>
           <p className="mt-6 max-w-md text-[17px] leading-8 text-steel">
-            질문 8개에 답하면 올리브영 인기 제품 {products.length}개의 전성분을 따져서
-            내 피부와 예산에 맞는 조합을 하나로 정해드려요.
+            질문 8개만 답해주세요. 올리브영 인기템 {products.length}개 성분표는
+            저희가 미리 다 읽어놨어요.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <Link href="/check" className="btn-primary h-14 px-7 text-[16px]">
@@ -67,26 +67,26 @@ export default function Home() {
           <p className="mt-5 text-[13px] text-mist">로그인 없이, 무료로 쓸 수 있어요.</p>
         </div>
 
-        <div aria-hidden="true" className="rounded-[28px] bg-teal-deep p-6 sm:p-8">
-          <p className="text-[13px] font-semibold text-white/70">이렇게 답하면</p>
+        <div aria-hidden="true" className="rounded-[28px] bg-lemon p-6 sm:p-8">
+          <p className="text-[13px] font-semibold text-ink/65">이렇게 답하면</p>
           <ul className="mt-3 flex flex-wrap gap-2">
             {["이마·코만 번들거려요", "트러블·번들거림", "가끔 예민해요", "면도 2~3일에 한 번", "최소 단계로", "8만 원 이하"].map((a, i) => (
               <li
                 key={a}
-                className="pick-word rounded-full bg-white/12 px-3.5 py-1.5 text-[14px] font-medium text-white ring-1 ring-white/20"
+                className="pick-word rounded-full bg-white/75 px-3.5 py-1.5 text-[14px] font-medium text-ink ring-1 ring-ink/10"
                 style={{ animationDelay: `${0.3 + i * 0.12}s` }}
               >
                 {a}
               </li>
             ))}
           </ul>
-          <p className="mt-7 text-[13px] font-semibold text-white/70">정함이 이렇게 정해요</p>
-          <div className="mt-3 rounded-2xl bg-white p-5 shadow-[0_16px_48px_-12px_rgba(0,40,38,0.55)]">
+          <p className="mt-7 text-[13px] font-semibold text-ink/65">정함이 이렇게 정해요</p>
+          <div className="mt-3 rounded-2xl bg-white p-5 shadow-[0_16px_48px_-12px_rgba(120,90,0,0.28)]">
             <p className="text-[13px] text-steel">복합성 피부, 트러블·번들거림, 3단계 {routine.total.toLocaleString()}원</p>
             <ol className="mt-3 space-y-2.5">
               {picked.map((p, i) => (
                 <li key={p.id} className="pick-word flex items-center gap-3" style={{ animationDelay: `${1.6 + i * 0.15}s` }}>
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal text-[12px] font-bold text-white">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lemon-deep text-[12px] font-bold text-ink">
                     {i + 1}
                   </span>
                   <ProductThumb src={p.image} brand={p.brand} name={p.name} size={40} priority />
@@ -104,35 +104,35 @@ export default function Home() {
       </section>
 
       {/* 만든 이유 */}
-      <section className="relative overflow-hidden bg-teal-dark">
+      <section className="relative overflow-hidden bg-lemon">
         <div aria-hidden="true" className="absolute inset-0 select-none">
-          <div className="flex flex-wrap content-start gap-x-4 gap-y-2 p-6 text-[13px] leading-6 text-white/25 sm:text-[15px]">
+          <div className="flex flex-wrap content-start gap-x-4 gap-y-2 p-6 text-[13px] leading-6 text-ink/20 sm:text-[15px]">
             {wall.map((p, i) => (
-              <span key={p.id} className={i % 7 === 0 ? "text-white/45" : ""}>
+              <span key={p.id} className={i % 7 === 0 ? "text-ink/40" : ""}>
                 {p.brand} {p.name}
               </span>
             ))}
           </div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,97,94,0.97)_0%,rgba(0,97,94,0.9)_38%,rgba(0,97,94,0.35)_75%,rgba(0,97,94,0)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,227,71,0.97)_0%,rgba(255,227,71,0.9)_38%,rgba(255,227,71,0.35)_75%,rgba(255,227,71,0)_100%)]" />
         </div>
         <div className="page relative py-28 text-center sm:py-36">
-          <h2 className="mx-auto max-w-2xl text-[32px] font-extrabold leading-[1.2] tracking-[-0.045em] text-white sm:text-[48px]">
+          <h2 className="mx-auto max-w-2xl text-[32px] font-extrabold leading-[1.2] tracking-[-0.045em] text-ink sm:text-[48px]">
             너무 많은 제품,
             <br />
             도대체 뭘 사야 할지 모르겠다면?
           </h2>
-          <p className="mx-auto mt-6 max-w-md text-[16px] leading-7 text-white/80">
-            그래서 정함을 만들었어요. 성분표 비교는 저희가 할게요.
-            내 피부에 맞는 루틴 하나만 받아 가세요.
+          <p className="mx-auto mt-6 max-w-md text-[16px] leading-7 text-ink/65">
+            올리브영 스킨케어 랭킹만 열어봐도 이래요. 이걸 언제 다 비교해요.
+            그래서 저희가 대신 다 읽어봤어요.
           </p>
-          <Link href="/check" className="mt-9 inline-flex h-14 items-center rounded-2xl bg-white px-7 text-[16px] font-bold text-teal-dark transition-colors hover:bg-teal-wash">
-            내 루틴 정하기
+          <Link href="/check" className="mt-9 inline-flex h-14 items-center rounded-2xl bg-ink px-7 text-[16px] font-bold text-white transition-colors hover:bg-ink/85">
+            1분 만에 정하기
           </Link>
         </div>
       </section>
 
       {/* 조사 근거 */}
-      <section className="bg-teal-wash/70">
+      <section className="bg-lemon-wash/70">
         <div className="page grid gap-12 py-20 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
             <h2 className="text-[30px] font-extrabold leading-tight tracking-[-0.035em] sm:text-[36px]">
@@ -141,7 +141,7 @@ export default function Home() {
               막히는 지점은 &lsquo;선택&rsquo;이었어요
             </h2>
             <p className="mt-5 max-w-sm text-[15px] leading-7 text-steel">
-              20대 남성에게 직접 물었어요. 매장에서 묻기 민망하다는 답은 6%뿐이었고, 절반 가까이가 비교하다 지친다고 했어요.
+              20대 남자들한테 직접 물어봤어요. 매장 직원한테 묻기 민망하다는 사람은 6%뿐. 절반 가까이는 비교하다 지쳐서 못 고르고 있었어요.
             </p>
             <p className="mt-6 text-[12px] leading-5 text-mist">
               정함 자체 설문, 2026년 11월 16일부터 11월 20일(금)까지 진행, 20대 남성 대상 편의표본, 중간 집계 기준
@@ -170,7 +170,7 @@ export default function Home() {
             { t: "다 쓸 때까지 챙겨요", d: "아침·저녁 체크와 용량 기준 소진 예정일로 재구매 시점을 알려드려요." },
           ].map((s, i) => (
             <li key={s.t} className="bg-white p-7 sm:p-8">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-teal text-[14px] font-bold text-teal">{i + 1}</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-lemon-deep text-[14px] font-bold text-lemon-ink">{i + 1}</span>
               <h3 className="mt-3 text-[19px] font-bold tracking-[-0.02em]">{s.t}</h3>
               <p className="mt-3 text-[15px] leading-7 text-steel">{s.d}</p>
             </li>
@@ -180,12 +180,12 @@ export default function Home() {
 
       {/* CTA */}
       <section className="page">
-        <div className="flex flex-col items-start justify-between gap-6 rounded-[28px] bg-teal-deep px-8 py-12 text-white sm:flex-row sm:items-center sm:px-12">
+        <div className="flex flex-col items-start justify-between gap-6 rounded-[28px] bg-lemon px-8 py-12 text-ink sm:flex-row sm:items-center sm:px-12">
           <div>
             <h2 className="text-[26px] font-extrabold tracking-[-0.03em] sm:text-[30px]">오늘 밤 바를 것까지 1분이면 정해져요</h2>
-            <p className="mt-2 text-[15px] text-white/80">추천 기준은 모두 공개해요. 광고비 받고 순위를 바꾸지 않아요.</p>
+            <p className="mt-2 text-[15px] text-ink/65">추천 기준은 모두 공개해요. 광고비 받고 순위를 바꾸지 않아요.</p>
           </div>
-          <Link href="/check" className="btn h-14 shrink-0 bg-white px-7 text-[16px] text-teal-deep hover:bg-teal-wash">
+          <Link href="/check" className="btn h-14 shrink-0 bg-ink px-7 text-[16px] text-white hover:bg-ink/85">
             1분 진단 시작
           </Link>
         </div>

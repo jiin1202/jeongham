@@ -43,7 +43,7 @@ function Dist({ title, data, label }: { title: string; data: Record<string, numb
                 <span className="tabular-nums text-steel">{v} ({Math.round((v / total) * 100)}%)</span>
               </div>
               <div className="mt-1 h-1.5 rounded-full bg-fog">
-                <div className="h-1.5 rounded-full bg-teal" style={{ width: `${(v / total) * 100}%` }} />
+                <div className="h-1.5 rounded-full bg-lemon-deep" style={{ width: `${(v / total) * 100}%` }} />
               </div>
             </li>
           ))}
@@ -171,7 +171,7 @@ export default function AdminPage() {
           <div className="mt-4 flex h-28 items-end gap-1">
             {s.daily.map((d) => {
               const m = Math.max(...s.daily.map((x) => x.n));
-              return <div key={d.d} title={`${d.d} ${d.n}건`} className="flex-1 rounded-t bg-teal" style={{ height: `${(d.n / m) * 100}%` }} />;
+              return <div key={d.d} title={`${d.d} ${d.n}건`} className="flex-1 rounded-t bg-lemon-deep" style={{ height: `${(d.n / m) * 100}%` }} />;
             })}
           </div>
         </section>

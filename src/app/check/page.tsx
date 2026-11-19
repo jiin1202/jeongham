@@ -73,7 +73,7 @@ export default function CheckPage() {
         </span>
       </div>
       <div className="mt-3 h-1 rounded-full bg-fog" role="progressbar" aria-valuenow={i + 1} aria-valuemin={1} aria-valuemax={questions.length}>
-        <div className="h-1 rounded-full bg-teal transition-[width] duration-300" style={{ width: `${((i + 1) / questions.length) * 100}%` }} />
+        <div className="h-1 rounded-full bg-lemon-deep transition-[width] duration-300" style={{ width: `${((i + 1) / questions.length) * 100}%` }} />
       </div>
 
       <h1 className="mt-10 text-[28px] font-extrabold leading-snug tracking-[-0.035em] sm:text-[34px]">{q.title}</h1>
@@ -90,7 +90,7 @@ export default function CheckPage() {
               aria-checked={on}
               onClick={() => (q.type === "multi" ? toggleMulti(o.value as Concern) : pickSingle(o.value))}
               className={`flex min-h-[60px] w-full items-center justify-between gap-4 rounded-2xl border px-5 py-4 text-left transition-colors ${
-                on ? "border-teal bg-teal-wash" : "border-line bg-white hover:border-ink"
+                on ? "border-lemon-deep bg-lemon-wash" : "border-line bg-white hover:border-ink"
               }`}
             >
               <span>
@@ -99,7 +99,7 @@ export default function CheckPage() {
               </span>
               <span
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
-                  on ? "border-teal bg-teal" : "border-line"
+                  on ? "border-lemon-deep bg-lemon-deep" : "border-line"
                 }`}
               >
                 {on && (

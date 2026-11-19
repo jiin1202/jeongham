@@ -30,10 +30,10 @@ body {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 h-12 text-[15px] font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
   }
   .btn-primary {
-    @apply btn bg-teal-deep text-white hover:bg-teal-dark;
+    @apply btn bg-lemon text-ink hover:bg-lemon-deep;
   }
-  .btn-teal {
-    @apply btn bg-teal text-white hover:bg-teal-deep;
+  .btn-lemon {
+    @apply btn bg-lemon-deep text-ink hover:bg-lemon;
   }
   .btn-ghost {
     @apply btn border border-line bg-white text-ink hover:border-ink;

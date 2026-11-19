@@ -109,8 +109,8 @@ function ResultInner() {
   return (
     <div className="page max-w-[760px] pb-10 pt-10 sm:pt-14">
       {shared && (
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-teal-wash px-5 py-4 text-[14px]">
-          <span className="font-semibold text-teal-deep">친구가 공유한 루틴이에요.</span>
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-lemon-wash px-5 py-4 text-[14px]">
+          <span className="font-semibold text-lemon-ink">친구가 공유한 루틴이에요.</span>
           <Link href="/check" className="font-semibold text-ink underline underline-offset-4">
             내 피부로 진단하기
           </Link>
@@ -123,17 +123,17 @@ function ResultInner() {
       </h1>
       <div className="mt-5 flex flex-wrap gap-2 text-[13px]">
         {answers.concerns.map((c) => (
-          <span key={c} className="rounded-full bg-teal-wash px-3 py-1.5 font-semibold text-teal-deep">
+          <span key={c} className="rounded-full bg-lemon-wash px-3 py-1.5 font-semibold text-lemon-ink">
             {concernLabel[c]} 고민
           </span>
         ))}
-        {routine.sensitive && <span className="rounded-full bg-teal-wash px-3 py-1.5 font-semibold text-teal-deep">예민한 편</span>}
+        {routine.sensitive && <span className="rounded-full bg-lemon-wash px-3 py-1.5 font-semibold text-lemon-ink">예민한 편</span>}
         <span className="rounded-full bg-fog px-3 py-1.5 font-medium">
           예산 {budget >= 999999 ? "제한 없음" : `${budget / 10000}만 원 이하`}
         </span>
       </div>
 
-      <p className="mt-6 border-l-2 border-teal pl-4 text-[14px] leading-6 text-steel">
+      <p className="mt-6 border-l-2 border-lemon-deep pl-4 text-[14px] leading-6 text-steel">
         전성분을 분석한 제품 {products.length}개 중 이 루틴 단계에 해당하는 {routine.candidates}개를 비교했고,
         {routine.excluded > 0 ? ` 자극이 겹칠 수 있는 ${routine.excluded}개는 뺐어요.` : " 자극 우려로 뺀 제품은 없어요."} 예산 안에서 점수가 가장 높은 조합이에요.
       </p>
@@ -147,13 +147,13 @@ function ResultInner() {
               <div className="flex gap-4">
                 <Link href={`/p/${p.id}/`} className="relative shrink-0 self-start" aria-label={`${p.brand} ${p.name} 성분 보기`}>
                   <ProductThumb src={p.image} brand={p.brand} name={p.name} className="h-[88px] w-[88px] sm:h-[120px] sm:w-[120px]" priority={idx < 2} />
-                  <span className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-teal-deep text-[13px] font-bold text-white ring-2 ring-white">
+                  <span className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-lemon text-[13px] font-bold text-ink ring-2 ring-white">
                     {idx + 1}
                   </span>
                 </Link>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                    <p className="text-[13px] font-semibold text-teal-deep">
+                    <p className="text-[13px] font-semibold text-lemon-ink">
                       {categoryLabel[p.category]}
                       {p.category === "sun" ? ", 아침에만" : ""}
                     </p>
@@ -173,7 +173,7 @@ function ResultInner() {
                   </p>
                   <ul className="mt-3 flex flex-wrap gap-1.5">
                     {pk.reasons.map((r) => (
-                      <li key={r} className="rounded-md bg-teal-wash px-2 py-1 text-[12.5px] font-medium text-teal-deep">
+                      <li key={r} className="rounded-md bg-lemon-wash px-2 py-1 text-[12.5px] font-medium text-lemon-ink">
                         {r}
                       </li>
                     ))}
@@ -185,7 +185,7 @@ function ResultInner() {
                     <Link href={`/p/${p.id}/`} className="rounded-lg border border-line px-3 py-2 font-medium hover:border-ink">
                       성분 보기
                     </Link>
-                    <a onClick={() => track("click_buy", { id: p.id })} href={buyUrl(p.goodsNo)} target="_blank" rel="noopener noreferrer sponsored" className="rounded-lg bg-teal-deep px-3 py-2 font-medium text-white hover:bg-teal-dark">
+                    <a onClick={() => track("click_buy", { id: p.id })} href={buyUrl(p.goodsNo)} target="_blank" rel="noopener noreferrer sponsored" className="rounded-lg bg-lemon px-3 py-2 font-medium text-ink hover:bg-lemon-deep">
                       올리브영에서 보기
                     </a>
                     <button type="button" onClick={() => setOpen(open === idx ? null : idx)} aria-expanded={open === idx} className="rounded-lg px-3 py-2 font-medium text-steel hover:text-ink">
@@ -256,7 +256,7 @@ function ResultInner() {
       )}
 
       <div className="sticky bottom-4 z-20 mt-10 flex flex-wrap gap-2 rounded-2xl border border-line bg-white/95 p-3 shadow-[0_10px_30px_-12px_rgba(28,36,48,0.3)] backdrop-blur">
-        <button type="button" onClick={save} className="btn-teal flex-1">
+        <button type="button" onClick={save} className="btn-lemon flex-1">
           이 루틴으로 정함
         </button>
         <button type="button" onClick={share} className="btn-ghost">

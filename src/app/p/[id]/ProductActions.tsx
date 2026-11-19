@@ -34,7 +34,7 @@ export default function ProductActions({ id, goodsNo, fit }: { id: string; goods
     const s = scoreProduct(p, a);
     const good = s && s.score >= 30 && s.warnings.length === 0;
     return (
-      <div className={`mt-6 rounded-2xl px-5 py-4 text-[14px] leading-6 ${!s ? "bg-rose-wash" : good ? "bg-teal-wash" : "bg-amber-wash"}`}>
+      <div className={`mt-6 rounded-2xl px-5 py-4 text-[14px] leading-6 ${!s ? "bg-rose-wash" : good ? "bg-lemon-wash" : "bg-amber-wash"}`}>
         <p className="font-bold">
           {skinTypeLabel[skinTypeOf(a)]} 피부 기준: {!s ? "추천에서 빼요" : good ? "잘 맞는 편이에요" : "써볼 만하지만 확인할 점이 있어요"}
         </p>
@@ -66,7 +66,7 @@ export default function ProductActions({ id, goodsNo, fit }: { id: string; goods
           setMine(next);
           saveMine(next);
         }}
-        className={`btn h-11 w-full text-[14px] ${on ? "bg-teal-wash text-teal-deep" : "border border-line hover:border-ink"}`}
+        className={`btn h-11 w-full text-[14px] ${on ? "bg-lemon-wash text-lemon-ink" : "border border-line hover:border-ink"}`}
       >
         {on ? "쓰는 제품에 추가됨" : "지금 쓰는 제품에 추가"}
       </button>

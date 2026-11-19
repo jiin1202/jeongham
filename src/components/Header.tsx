@@ -16,7 +16,7 @@ export function Logo({ className = "" }: { className?: string }) {
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
         <rect x="1" y="1" width="20" height="20" rx="6" fill="none" stroke="#1C2430" strokeWidth="2" />
-        <path d="M6 11.5l3.2 3.2L16 7.8" fill="none" stroke="#00A19B" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6 11.5l3.2 3.2L16 7.8" fill="none" stroke="#E8B800" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <span className="text-[19px] font-extrabold tracking-[-0.04em]">정함</span>
     </span>
@@ -38,7 +38,7 @@ export default function Header() {
               key={n.href}
               href={n.href}
               className={`hidden rounded-lg px-3 py-2 sm:block ${
-                path?.startsWith(n.href) ? "bg-teal-wash text-teal-deep font-semibold" : "text-steel hover:text-ink"
+                path?.startsWith(n.href) ? "bg-lemon-wash text-lemon-ink font-semibold" : "text-steel hover:text-ink"
               }`}
             >
               {n.label}
@@ -49,7 +49,7 @@ export default function Header() {
               {user ? "계정" : "로그인"}
             </Link>
           )}
-          <Link href="/check" className="ml-1 rounded-lg bg-teal-deep px-3.5 py-2 font-semibold text-white hover:bg-teal-dark">
+          <Link href="/check" className="ml-1 rounded-lg bg-lemon px-3.5 py-2 font-semibold text-ink hover:bg-lemon-deep">
             진단하기
           </Link>
         </nav>
@@ -59,7 +59,7 @@ export default function Header() {
           <Link
             key={n.href}
             href={n.href}
-            className={`shrink-0 rounded-full px-3 py-1.5 ${path?.startsWith(n.href) ? "bg-teal-wash text-teal-deep font-semibold" : "text-steel"}`}
+            className={`shrink-0 rounded-full px-3 py-1.5 ${path?.startsWith(n.href) ? "bg-lemon-wash text-lemon-ink font-semibold" : "text-steel"}`}
           >
             {n.label}
           </Link>

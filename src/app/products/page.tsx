@@ -102,7 +102,7 @@ export default function ProductsPage() {
   }, [q, cat, con, skin, tex, price, want, avoid, sun, gentle, functional, men, sort]);
 
   const active = con.length + (skin ? 1 : 0) + tex.length + price.length + want.length + avoid.length + sun.length + (gentle ? 1 : 0) + (functional ? 1 : 0) + (men ? 1 : 0);
-  const chip = (on: boolean) => `rounded-full px-3 py-1.5 text-[13px] font-medium ${on ? "bg-teal-deep text-white" : "bg-fog text-steel hover:text-ink"}`;
+  const chip = (on: boolean) => `rounded-full px-3 py-1.5 text-[13px] font-medium ${on ? "bg-lemon text-ink" : "bg-fog text-steel hover:text-ink"}`;
   const reset = () => {
     setQ("");
     setCat("all");
@@ -127,7 +127,7 @@ export default function ProductsPage() {
         <aside aria-label="필터">
           <div>
             <label htmlFor="pq" className="text-[13px] font-bold">검색</label>
-            <input id="pq" value={q} onChange={(e) => setQ(e.target.value)} placeholder="브랜드, 제품명, 성분" className="mt-2 h-11 w-full rounded-xl border border-line px-4 text-[15px] outline-none placeholder:text-mist focus:border-teal" />
+            <input id="pq" value={q} onChange={(e) => setQ(e.target.value)} placeholder="브랜드, 제품명, 성분" className="mt-2 h-11 w-full rounded-xl border border-line px-4 text-[15px] outline-none placeholder:text-mist focus:border-lemon-deep" />
           </div>
           <div className="mt-5">
             <Group title="종류">
@@ -198,20 +198,20 @@ export default function ProductsPage() {
             )}
             <div className="space-y-2.5 text-[14px]">
               <label className="flex items-center gap-2">
-                <input type="checkbox" checked={gentle} onChange={(e) => setGentle(e.target.checked)} className="h-4 w-4 accent-teal" />
+                <input type="checkbox" checked={gentle} onChange={(e) => setGentle(e.target.checked)} className="h-4 w-4 accent-lemon-deep" />
                 자극 가능 성분 없는 순한 제품만
               </label>
               <label className="flex items-center gap-2">
-                <input type="checkbox" checked={functional} onChange={(e) => setFunctional(e.target.checked)} className="h-4 w-4 accent-teal" />
+                <input type="checkbox" checked={functional} onChange={(e) => setFunctional(e.target.checked)} className="h-4 w-4 accent-lemon-deep" />
                 기능성 화장품만
               </label>
               <label className="flex items-center gap-2">
-                <input type="checkbox" checked={men} onChange={(e) => setMen(e.target.checked)} className="h-4 w-4 accent-teal" />
+                <input type="checkbox" checked={men} onChange={(e) => setMen(e.target.checked)} className="h-4 w-4 accent-lemon-deep" />
                 남성 전용 제품만
               </label>
             </div>
             {active > 0 && (
-              <button type="button" onClick={reset} className="text-[13px] font-semibold text-teal-deep underline underline-offset-4">
+              <button type="button" onClick={reset} className="text-[13px] font-semibold text-lemon-ink underline underline-offset-4">
                 필터 모두 지우기
               </button>
             )}
@@ -233,7 +233,7 @@ export default function ProductsPage() {
           {list.length === 0 ? (
             <div className="mt-4 rounded-2xl border border-dashed border-line px-6 py-14 text-center text-[15px] text-steel">
               조건에 맞는 제품이 없어요. 필터를 몇 개 빼 보세요.{" "}
-              <button type="button" onClick={reset} className="font-semibold text-teal-deep underline underline-offset-4">모두 지우기</button>
+              <button type="button" onClick={reset} className="font-semibold text-lemon-ink underline underline-offset-4">모두 지우기</button>
             </div>
           ) : (
             <ul className="mt-4 divide-y divide-line border-y border-line">
@@ -247,7 +247,7 @@ export default function ProductsPage() {
                       <FitLine p={p} className="mt-1" />
                       <span className="mt-1 flex flex-wrap gap-1 text-[12px]">
                         <span className="rounded bg-fog px-1.5 py-0.5 text-steel">{textureLabel[p.texture]}</span>
-                        {p.concerns.slice(0, 3).map((c) => <span key={c} className="rounded bg-teal-wash px-1.5 py-0.5 text-teal-deep">{concernLabel[c]}</span>)}
+                        {p.concerns.slice(0, 3).map((c) => <span key={c} className="rounded bg-lemon-wash px-1.5 py-0.5 text-lemon-ink">{concernLabel[c]}</span>)}
                         {p.irritation >= 3 && <span className="rounded bg-amber-wash px-1.5 py-0.5 text-amber">자극 가능 성분</span>}
                       </span>
                     </span>

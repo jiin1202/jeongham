@@ -35,7 +35,7 @@ export default function MinePage() {
 
   const mine = ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
   const results = checkProducts(mine, a);
-  const color = { good: "text-teal-deep bg-teal-wash", caution: "text-amber bg-amber-wash", bad: "text-rose bg-rose-wash" } as const;
+  const color = { good: "text-lemon-ink bg-lemon-wash", caution: "text-amber bg-amber-wash", bad: "text-rose bg-rose-wash" } as const;
 
   return (
     <div className="page grid gap-12 pb-10 pt-10 sm:pt-14 lg:grid-cols-[1fr_1fr]">
@@ -62,7 +62,7 @@ export default function MinePage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="브랜드나 제품명, 예: 토리든"
-          className="mt-8 h-14 w-full rounded-2xl border border-line bg-white px-5 text-[16px] outline-none placeholder:text-mist focus:border-teal"
+          className="mt-8 h-14 w-full rounded-2xl border border-line bg-white px-5 text-[16px] outline-none placeholder:text-mist focus:border-lemon-deep"
         />
         <div className="mt-3 flex flex-wrap gap-1.5">
           {cats.map((c) => (
@@ -71,7 +71,7 @@ export default function MinePage() {
               type="button"
               onClick={() => setCat(c)}
               aria-pressed={cat === c}
-              className={`rounded-full px-3 py-1.5 text-[13px] font-medium ${cat === c ? "bg-teal-deep text-white" : "bg-fog text-steel hover:text-ink"}`}
+              className={`rounded-full px-3 py-1.5 text-[13px] font-medium ${cat === c ? "bg-lemon text-ink" : "bg-fog text-steel hover:text-ink"}`}
             >
               {c === "all" ? "전체" : categoryLabel[c]}
             </button>
@@ -104,7 +104,7 @@ export default function MinePage() {
                       <FitLine p={p} className="mt-1" />
                     </span>
                   </span>
-                  <span className={`shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-semibold ${on ? "bg-teal text-white" : "border border-line text-ink"}`}>
+                  <span className={`shrink-0 rounded-lg px-3 py-1.5 text-[13px] font-semibold ${on ? "bg-lemon-deep text-ink" : "border border-line text-ink"}`}>
                     {on ? "쓰는 중" : "추가"}
                   </span>
                 </button>

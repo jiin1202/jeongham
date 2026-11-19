@@ -5,7 +5,7 @@ export default function FitLine({ p, size = "sm", className = "" }: { p: Product
   const lg = size === "lg";
   return (
     <span
-      className={`inline-flex max-w-full items-center gap-1.5 rounded-md bg-teal-wash font-semibold text-teal-deep ${
+      className={`inline-flex max-w-full items-center gap-1.5 rounded-md bg-lemon-wash font-semibold text-lemon-ink ${
         lg ? "px-3 py-1.5 text-[15px]" : "px-2 py-0.5 text-[12.5px]"
       } ${className}`}
     >

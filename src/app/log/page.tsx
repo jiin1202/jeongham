@@ -29,7 +29,7 @@ function Scale({ label, value, onChange, n }: { label: string; value: number; on
       <div className="mt-2 flex flex-wrap gap-1.5">
         {n.map((t, i) =>
           t ? (
-            <button key={t} type="button" aria-pressed={value === i} onClick={() => onChange(i)} className={`rounded-lg px-3 py-2 text-[14px] font-medium ${value === i ? "bg-teal-deep text-white" : "bg-fog text-steel hover:text-ink"}`}>
+            <button key={t} type="button" aria-pressed={value === i} onClick={() => onChange(i)} className={`rounded-lg px-3 py-2 text-[14px] font-medium ${value === i ? "bg-lemon text-ink" : "bg-fog text-steel hover:text-ink"}`}>
               {t}
             </button>
           ) : null
@@ -131,7 +131,7 @@ export default function LogPage() {
         <Scale label="건조함·당김" value={f.dry} onChange={(v) => setF({ ...f, dry: v })} n={LEVEL} />
         <div>
           <label htmlFor="note" className="text-[14px] font-semibold">메모 <span className="font-normal text-mist">(선택)</span></label>
-          <input id="note" value={f.note ?? ""} maxLength={120} onChange={(e) => setF({ ...f, note: e.target.value })} placeholder="예: 면도 후 따가움, 새 선크림 시작" className="mt-2 h-11 w-full rounded-xl border border-line px-4 text-[15px] outline-none placeholder:text-mist focus:border-teal" />
+          <input id="note" value={f.note ?? ""} maxLength={120} onChange={(e) => setF({ ...f, note: e.target.value })} placeholder="예: 면도 후 따가움, 새 선크림 시작" className="mt-2 h-11 w-full rounded-xl border border-line px-4 text-[15px] outline-none placeholder:text-mist focus:border-lemon-deep" />
         </div>
         <div>
           <p className="text-[14px] font-semibold">사진 <span className="font-normal text-mist">(선택)</span></p>
@@ -143,7 +143,7 @@ export default function LogPage() {
           </div>
         </div>
         <button type="button" onClick={submit} disabled={busy} className="btn-primary h-12 w-full disabled:opacity-50">{busy ? "저장하는 중…" : logs.some((l) => l.day === t) ? "오늘 기록 고치기" : "기록하기"}</button>
-        {msg && <p role="status" className={`rounded-xl px-4 py-3 text-[14px] ${msg.ok ? "bg-teal-wash text-teal-deep" : "bg-rose-wash text-rose"}`}>{msg.t}</p>}
+        {msg && <p role="status" className={`rounded-xl px-4 py-3 text-[14px] ${msg.ok ? "bg-lemon-wash text-lemon-ink" : "bg-rose-wash text-rose"}`}>{msg.t}</p>}
       </section>
 
       {logs.length === 0 ? (
@@ -155,8 +155,8 @@ export default function LogPage() {
             <p className="mt-1 text-[13.5px] text-steel">최근 {pts.length}번 기록, 위로 갈수록 좋아요.</p>
             <svg viewBox={`0 0 ${W} ${H}`} className="mt-4 w-full" role="img" aria-label={`최근 피부 컨디션, 마지막 기록 ${OVERALL[pts[pts.length - 1].overall]}`}>
               {[1, 3, 5].map((v) => <line key={v} x1="10" x2={W - 10} y1={H - 10 - ((v - 1) / 4) * (H - 20)} y2={H - 10 - ((v - 1) / 4) * (H - 20)} stroke="#DCE1E7" strokeDasharray="3 4" />)}
-              {pts.length > 1 && <path d={path} fill="none" stroke="#00A19B" strokeWidth="2.5" strokeLinejoin="round" />}
-              {pts.map((l, i) => <circle key={l.day} cx={(i / Math.max(1, pts.length - 1)) * (W - 20) + 10} cy={H - 10 - ((l.overall - 1) / 4) * (H - 20)} r="3.5" fill="#00A19B" />)}
+              {pts.length > 1 && <path d={path} fill="none" stroke="#E8B800" strokeWidth="2.5" strokeLinejoin="round" />}
+              {pts.map((l, i) => <circle key={l.day} cx={(i / Math.max(1, pts.length - 1)) * (W - 20) + 10} cy={H - 10 - ((l.overall - 1) / 4) * (H - 20)} r="3.5" fill="#E8B800" />)}
             </svg>
           </section>}
 
@@ -174,7 +174,7 @@ export default function LogPage() {
                       <span>{r.label}</span>
                       <span className="tabular-nums">
                         {r.a.toFixed(1)} → <b>{r.b.toFixed(1)}</b>
-                        <span className={`ml-3 text-[13px] font-semibold ${better ? "text-teal-deep" : worse ? "text-rose" : "text-mist"}`}>{better ? "나아졌어요" : worse ? "나빠졌어요" : "비슷해요"}</span>
+                        <span className={`ml-3 text-[13px] font-semibold ${better ? "text-lemon-ink" : worse ? "text-rose" : "text-mist"}`}>{better ? "나아졌어요" : worse ? "나빠졌어요" : "비슷해요"}</span>
                       </span>
                     </li>
                   );
