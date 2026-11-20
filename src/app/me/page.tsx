@@ -179,7 +179,7 @@ export default function MePage() {
             <li key={p.id} className="py-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex min-w-0 items-center gap-3">
-                  <ProductThumb src={p.image} brand={p.brand} name={p.name} size={56} />
+                  <ProductThumb p={p} size={56} />
                   <div className="min-w-0">
                   <p className="text-[13px] font-semibold text-lemon-ink">{categoryLabel[p.category]}</p>
                   <Link href={`/p/${p.id}/`} className="block truncate text-[16px] font-bold hover:underline">

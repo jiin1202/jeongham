@@ -146,7 +146,7 @@ function ResultInner() {
             <li key={idx} className="py-6">
               <div className="flex gap-4">
                 <Link href={`/p/${p.id}/`} className="relative shrink-0 self-start" aria-label={`${p.brand} ${p.name} 성분 보기`}>
-                  <ProductThumb src={p.image} brand={p.brand} name={p.name} className="h-[88px] w-[88px] sm:h-[120px] sm:w-[120px]" priority={idx < 2} />
+                  <ProductThumb p={p} className="h-[88px] w-[88px] sm:h-[120px] sm:w-[120px]" priority={idx < 2} />
                   <span className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-lemon text-[13px] font-bold text-ink ring-2 ring-white">
                     {idx + 1}
                   </span>
@@ -206,7 +206,7 @@ function ResultInner() {
                           className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3 text-left hover:bg-white"
                         >
                           <span className="flex min-w-0 items-center gap-3 text-[14.5px]">
-                            <ProductThumb src={ap.image} brand={ap.brand} name={ap.name} size={48} />
+                            <ProductThumb p={ap} size={48} />
                             <span className="min-w-0">
                               <span className="block"><span className="text-steel">{ap.brand}</span> <span className="font-semibold">{ap.name}</span></span>
                               <FitLine p={ap} className="mt-1" />
@@ -266,7 +266,7 @@ function ResultInner() {
               return (
                 <li key={p.id}>
                   <Link href={`/p/${p.id}/`} className="flex h-full gap-3 rounded-2xl border border-line p-4 hover:border-ink">
-                    <ProductThumb src={p.image} brand={p.brand} name={p.name} size={64} />
+                    <ProductThumb p={p} size={64} />
                     <span className="min-w-0">
                       <span className="block text-[12.5px] font-semibold text-lemon-ink">{categoryLabel[p.category]}, {when}</span>
                       <span className="mt-0.5 block text-[15px] font-bold leading-snug"><span className="font-medium text-steel">{p.brand}</span> {p.name}</span>

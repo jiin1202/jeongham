@@ -89,7 +89,7 @@ export default function Home() {
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lemon-deep text-[12px] font-bold text-ink">
                     {i + 1}
                   </span>
-                  <ProductThumb src={p.image} brand={p.brand} name={p.name} size={40} priority />
+                  <ProductThumb p={p} size={40} priority />
                   <span className="min-w-0">
                     <span className="block truncate text-[15px] font-semibold">
                       {p.brand} {p.name}

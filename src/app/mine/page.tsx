@@ -95,7 +95,7 @@ export default function MinePage() {
                   className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left hover:bg-fog/60"
                 >
                   <span className="flex min-w-0 items-center gap-3">
-                    <ProductThumb src={p.image} brand={p.brand} name={p.name} size={48} />
+                    <ProductThumb p={p} size={48} />
                     <span className="min-w-0">
                       <span className="block text-[12.5px] text-steel">
                         {categoryLabel[p.category]}, {p.brand}
@@ -128,7 +128,7 @@ export default function MinePage() {
                 return (
                   <li key={p.id} className="rounded-2xl border border-line p-5">
                     <div className="flex items-start justify-between gap-3">
-                      <ProductThumb src={p.image} brand={p.brand} name={p.name} size={56} />
+                      <ProductThumb p={p} size={56} />
                       <div className="min-w-0 flex-1">
                         <p className="text-[12.5px] text-steel">
                           {categoryLabel[p.category]}, {p.brand}

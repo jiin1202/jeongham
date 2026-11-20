@@ -54,7 +54,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       </nav>
 
       <header className="mt-4 grid gap-6 sm:grid-cols-[200px_1fr] sm:gap-8 lg:grid-cols-[240px_1fr_270px]">
-        <ProductThumb src={p.image} brand={p.brand} name={p.name} priority className="mx-auto h-[220px] w-[220px] sm:mx-0 sm:h-[200px] sm:w-[200px] lg:h-[240px] lg:w-[240px]" />
+        <ProductThumb p={p} priority className="mx-auto h-[220px] w-[220px] sm:mx-0 sm:h-[200px] sm:w-[200px] lg:h-[240px] lg:w-[240px]" />
         <div>
           <p className="text-[13px] font-semibold text-lemon-ink">{categoryLabel[p.category]}</p>
           <p className="mt-1 text-[15px] font-semibold text-steel">{p.brand}</p>
@@ -128,7 +128,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               <li key={x.partner.id} className="flex flex-col rounded-2xl border border-line p-4">
                 <p className="text-[13px] font-bold text-lemon-ink">{x.title}</p>
                 <Link href={`/p/${x.partner.id}/`} className="mt-3 flex items-center gap-3 rounded-xl bg-fog/60 p-2.5 hover:bg-fog">
-                  <ProductThumb src={x.partner.image} brand={x.partner.brand} name={x.partner.name} size={56} />
+                  <ProductThumb p={x.partner} size={56} />
                   <span className="min-w-0">
                     <span className="block text-[12px] text-steel">{categoryLabel[x.partner.category]}, {x.partner.brand}</span>
                     <span className="block truncate text-[14.5px] font-semibold">{x.partner.name}</span>
@@ -225,7 +225,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             {similar.map((x) => (
               <li key={x.id}>
                 <Link href={`/p/${x.id}/`} className="flex items-center gap-4 rounded-2xl border border-line p-3 hover:border-ink">
-                  <ProductThumb src={x.image} brand={x.brand} name={x.name} size={64} />
+                  <ProductThumb p={x} size={64} />
                   <span className="min-w-0">
                     <span className="block text-[13px] text-steel">{x.brand}</span>
                     <span className="block truncate text-[15px] font-semibold">{x.name}</span>
