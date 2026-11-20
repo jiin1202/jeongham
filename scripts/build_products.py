@@ -23,6 +23,7 @@ MEN = {  # 맨즈에딧 랭킹(2026-11-17)에서 확인한 이름·가격
  "A000000238816": ("오브제","[1등 기름종이선스틱] 오브제 포어 제로 오일 컨트롤 선스틱 18g 단품/기획","25,000원 ~","18,900원 ~"),
 }
 EXCLUDE = re.compile(r"톤업|쌩얼|커버|쿠션|틴티드|바디|토너/로션|미스트|패드|마스크|리무버|H2O|갈색병|워시필|필링")
+EXTRA = re.compile(r"\d종 ?세트|스킨케어 \d종|세트|&|괄사|\+ ?클렌징|\+ ?폼|아이 ?크림|키트|에센스 ?\d+ml ?\+")
 
 def core(name):
     s = re.sub(r"\[[^\]]*\]", " ", name)
@@ -47,7 +48,8 @@ def strip_brand(brand, n):
     n = n.replace(brand, "", 1).strip() if n.startswith(brand) else n
     n = re.sub(r"\s\d+(\.\d+)?\s?(ml|mL|ML|g|G)\b.*$", "", n).strip()
     n = re.sub(r"\s\d+\+\d+.*$", "", n).strip()
-    n = re.sub(r"\s?(단품|기획|더블|리필|1\+1|2입).*$", "", n).strip()
+    n = re.sub(r"\s?(단품|기획|리필|1\+1|2입).*$", "", n).strip()
+    n = re.sub(r"\s더블(\s?기획.*)?$", "", n).strip()
     return n
 
 out, seen = [], set()
@@ -64,17 +66,30 @@ def clean_ing(t):
     t = re.sub(r"\(\s*[\d.,\s]+\s*(ppm|ppb|%|mg)\s*\)", "", t, flags=re.I)
     return re.sub(r"(?<!\d)\s*,\s*", ", ", t).strip(" ,")
 
+# 2차 수집분(raw2.json, 브라우저 수집): q는 dict 목록, d는 {v,s,i,f,m,u}
+IMG2 = {}
+NEW = set()
+if len(sys.argv) > 2:
+    r2 = json.load(open(sys.argv[2]))
+    for x in r2["q"]:
+        src["q"].append([x["g"], x.get("cat", ""), x["src"], x["rank"], x["brand"], x["name"], x["org"], x["cur"], 1 if x["src"] == "men" else 0])
+        NEW.add(x["g"])
+        if x.get("img"): IMG2[x["g"]] = x["img"][:2] + ("ko.jpg" if x["img"][2] == "j" else "ko.png")
+    for k, v in r2["d"].items():
+        src["d"].setdefault(k, v)
+
 for row in src["q"]:
     g, cat, srcname, rank, brand, name, org, cur, men = row
     if srcname == "men": men = 1
     if g in MEN and not name:
         brand, name, org, cur = MEN[g]
     d = src["d"].get(g)
-    if not d or not name: continue
+    if not d or not name or not name.strip(): continue
     ing = clean_ing(d.get("i", ""))
     if len(ing) < 20 or "상세페이지" in ing or "참조" in ing[:30]: continue
     c = core(name)
     if EXCLUDE.search(c): continue
+    if g in NEW and (EXTRA.search(c) or EXTRA.search(name)): continue
     cat2 = classify(c)
     if not cat2: continue
     vol_txt = d.get("v", "")
@@ -102,7 +117,7 @@ for e in open("scripts/images.txt").read().strip().split(","):
     if len(e) == 11:
         IMG["A0000" + e[:8]] = e[8:10] + ("ko.jpg" if e[10] == "j" else "ko.png")
 for p_ in out:
-    v = IMG.get(p_["goodsNo"])
+    v = IMG.get(p_["goodsNo"]) or IMG2.get(p_["goodsNo"])
     p_["image"] = f"https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/400/10/0000/{p_['goodsNo'][5:9]}/{p_['goodsNo']}{v}?l=ko" if v else ""
 
 # 수동 보정(이름 규칙으로 잘못 분류된 것)
@@ -110,6 +125,8 @@ FIX_CAT = {"이지워시 마일드 선크림": "sun", "프로텍트 올인원 �
 for p_ in out:
     p_["name"] = re.sub(r"\s*\([^)]*\)\s*$", "", p_["name"]).replace(" 증정", "").replace(" 대용량", "").strip()
     p_["name"] = re.sub(r"\s\d+(ml|g)$", "", p_["name"])
+    p_["name"] = re.sub(r"\s+\d종(\s?택\s?1)?$", "", p_["name"])
+    p_["name"] = re.sub(r"\s*SPF\s?\d+\+?\s*/?\s*(PA\++)?", "", p_["name"]).strip()
     if p_["name"] in FIX_CAT: p_["category"] = FIX_CAT[p_["name"]]
 json.dump(out, open("src/data/products.json", "w"), ensure_ascii=False, indent=0)
 from collections import Counter
