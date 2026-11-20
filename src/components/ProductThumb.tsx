@@ -1,6 +1,9 @@
+"use client";
+/* eslint-disable @next/next/no-img-element -- 외부 판매처 썸네일(이미 400px로 최적화됨)이라 next/image 최적화를 쓰지 않음 */
+import { useState } from "react";
 import type { Category } from "@/lib/model";
 
-type Item = { id: string; brand: string; name: string; fullName: string; category: Category };
+type Item = { id: string; brand: string; name: string; fullName: string; category: Category; image?: string };
 type Props = {
   p: Item;
   /** 정사각형 한 변(px). 반응형이 필요하면 className으로 덮어쓰기 */
@@ -9,7 +12,7 @@ type Props = {
   priority?: boolean;
 };
 
-// 판매처 사진은 기획 구성·문구·모델 컷이 섞여 있어, 종류별 용기 모양 일러스트로 통일한다.
+// 기본은 올리브영 대표 사진. 사진이 없거나 못 불러오면 종류별 용기 일러스트로 대신한다.
 type Shape = "tube" | "bottle" | "dropper" | "pump" | "jar" | "stick" | "tub" | "pouch" | "patch";
 
 function shapeOf(p: Item): Shape {
@@ -157,9 +160,25 @@ function Art({ shape, body, accent, brand }: { shape: Shape; body: string; accen
   }
 }
 
-export default function ProductThumb({ p, size = 72, className = "" }: Props) {
+export default function ProductThumb({ p, size = 72, className = "", priority }: Props) {
+  const [failed, setFailed] = useState(false);
   const [body, accent] = PALETTE[hash(p.brand) % PALETTE.length];
   const style = className.includes("w-") ? undefined : { width: size, height: size };
+  if (p.image && !failed) {
+    return (
+      <div className={`relative shrink-0 overflow-hidden rounded-xl border border-line bg-white ${className}`} style={style}>
+        <img
+          src={p.image}
+          alt={`${p.brand} ${p.name} 제품 사진`}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          referrerPolicy="no-referrer"
+          onError={() => setFailed(true)}
+          className="absolute inset-0 h-full w-full object-contain p-[6%]"
+        />
+      </div>
+    );
+  }
   return (
     <div className={`relative shrink-0 overflow-hidden rounded-xl border border-line bg-[#F7F8FA] ${className}`} style={style}>
       <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" role="img" aria-label={`${p.brand} ${p.name}`}>
