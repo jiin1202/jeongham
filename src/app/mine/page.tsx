@@ -8,7 +8,7 @@ import { checkProducts } from "@/lib/engine";
 import { loadAnswers, loadMine, saveMine } from "@/lib/store";
 import { skinTypeLabel, skinTypeOf, type Answers } from "@/lib/quiz";
 
-const cats: (Category | "all")[] = ["all", "cleanser", "toner", "serum", "moisturizer", "allinone", "sun"];
+const cats: (Category | "all")[] = ["all", "cleanser", "toner", "serum", "moisturizer", "allinone", "sun", "pad", "sheet", "pack", "patch"];
 
 export default function MinePage() {
   const [q, setQ] = useState("");

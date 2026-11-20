@@ -14,6 +14,8 @@ export type Routine = {
   excluded: number;
   notes: string[];
   plan: NonNullable<Answers["steps"]>;
+  /** 예산과 별도로 주 1~3회 더하면 좋은 스페셜 케어(선택) */
+  special: Pick[];
 };
 
 // 다른 사용자 평가(서버 연결 시 주입). productId → { avg, n }
@@ -228,7 +230,42 @@ function buildFor(a: Answers, plan: NonNullable<Answers["steps"]>): Routine {
   notes.push(...routineConflicts(picks.map((p) => p.product)));
   if (a.concerns.includes("trouble") && a.sensitive === "often") notes.push("트러블이 계속되거나 심해지면 화장품보다 피부과 진료가 먼저예요.");
 
-  return { skin, sensitive, steps, picks, total, overBudget: !best, candidates, excluded, notes, plan };
+  return { skin, sensitive, steps, picks, total, overBudget: !best, candidates, excluded, notes, plan, special: specialCare(a, picks.map((p) => p.product)) };
+}
+
+// 고민별로 어울리는 스페셜 케어 종류(앞쪽이 우선)
+const SPECIAL_FOR: Record<string, Category[]> = {
+  trouble: ["patch", "pad", "pack"],
+  pore: ["pack", "patch", "pad"],
+  oil: ["pack", "pad"],
+  dry: ["sheet", "pack"],
+  redness: ["sheet", "pad"],
+  tone: ["sheet", "pad"],
+  aging: ["sheet", "pack"],
+};
+
+/** 루틴에 더할 스페셜 케어 최대 2개. 루틴에 이미 강한 활성 성분이 있으면 겹치지 않게 뺀다. */
+export function specialCare(a: Answers, routine: Product[]): Pick[] {
+  const routineActive = routine.some((p) => p.activeStrong.length > 0 && p.category !== "cleanser");
+  const order: Category[] = [];
+  for (const c of a.concerns) for (const cat of SPECIAL_FOR[c] ?? []) if (!order.includes(cat)) order.push(cat);
+  if (!order.length) order.push("sheet", "pack");
+  const out: Pick[] = [];
+  for (const cat of order) {
+    if (out.length >= 2) break;
+    let best: Pick | null = null;
+    for (const p of products) {
+      if (p.category !== cat) continue;
+      if (routineActive && p.activeStrong.length) continue;
+      const r = scoreProduct(p, a);
+      if (!r) continue;
+      // 고민 성분 근거가 있는 것만
+      if (!a.concerns.some((c) => p.concerns.includes(c)) && a.concerns.length) continue;
+      if (!best || r.score > best.score || (r.score === best.score && p.price < best.product.price)) best = { product: p, ...r };
+    }
+    if (best) out.push(best);
+  }
+  return out;
 }
 
 export function pickFor(id: string, a: Answers): Pick | null {

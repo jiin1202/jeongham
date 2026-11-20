@@ -30,7 +30,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   if (!p) notFound();
   const price = p.salePrice ?? p.price;
   const totalVol = p.volume * p.units;
-  const per10 = totalVol ? Math.round((price / totalVol) * 10) : null;
+  const per10 = totalVol ? Math.round((price / totalVol) * (p.countUnit ? 1 : 10)) : null;
   const benefits = keyBenefits(p);
   const adv = advice(p);
   const fit = fitLine(p);
@@ -81,7 +81,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             </div>
             {per10 && (
               <div className="flex justify-between gap-3">
-                <dt className="text-steel">10ml당</dt>
+                <dt className="text-steel">{p.countUnit ? `1${p.countUnit}당` : "10ml당"}</dt>
                 <dd className="tabular-nums">{won(per10)}</dd>
               </div>
             )}

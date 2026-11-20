@@ -7,7 +7,7 @@ import { GROUPS, type IngGroup } from "@/data/ingredients";
 import { categoryLabel, concernLabel, products, textureLabel, type Category, type Concern, type Product, type SkinType } from "@/lib/model";
 import { skinTypeLabel } from "@/lib/quiz";
 
-const cats: (Category | "all")[] = ["all", "cleanser", "toner", "serum", "moisturizer", "allinone", "sun"];
+const cats: (Category | "all")[] = ["all", "cleanser", "toner", "serum", "moisturizer", "allinone", "sun", "pad", "sheet", "pack", "patch"];
 const concerns = Object.keys(concernLabel) as Concern[];
 const skins: SkinType[] = ["oily", "combo", "dry", "normal"];
 const textures: Product["texture"][] = ["light", "mid", "rich"];
@@ -36,7 +36,7 @@ const sorts: { v: Sort; label: string }[] = [
 ];
 
 const priceOf = (p: Product) => p.salePrice ?? p.price;
-const unit = (p: Product) => (priceOf(p) / Math.max(1, p.volume * p.units)) * 10;
+const unit = (p: Product) => (priceOf(p) / Math.max(1, p.volume * p.units)) * (p.countUnit ? 1 : 10);
 const hasEarly = (p: Product, g: IngGroup) => p.hits.some((h) => h.group === g && h.pos < 25);
 const hasAvoid = (p: Product, g: IngGroup) => (g === "alcohol" ? p.hits.some((h) => h.group === "alcohol" && h.pos < 6) : p.groups.has(g));
 
@@ -253,7 +253,7 @@ export default function ProductsPage() {
                     </span>
                     <span className="text-right">
                       <span className="block text-[15px] font-bold tabular-nums">{priceOf(p).toLocaleString()}원</span>
-                      <span className="block text-[12px] tabular-nums text-mist">10ml당 {Math.round(unit(p)).toLocaleString()}원</span>
+                      <span className="block text-[12px] tabular-nums text-mist">{p.countUnit ? `1${p.countUnit}당` : "10ml당"} {Math.round(unit(p)).toLocaleString()}원</span>
                     </span>
                   </Link>
                 </li>

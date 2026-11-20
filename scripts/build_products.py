@@ -111,6 +111,66 @@ for row in src["q"]:
         "ingredients": ing, "forMen": bool(men) or bool(re.search(r"포 ?맨|옴므|맨즈|남성", name)),
         "rank": rank or 0, "rankSource": srcname,
     })
+
+# ── 3차 수집분(raw3.json): 패드·시트 마스크·팩·패치(스페셜 케어) ──
+def special_cat(src_, n):
+    if src_ == "pad" or "패드" in n: return "pad"
+    if src_ in ("patch", "nose") or re.search(r"패치|코팩|코 팩|블랙헤드 ?스트립", n): return "patch"
+    if src_ == "sheet" or re.search(r"시트|마스크", n): return "sheet"
+    if src_ == "pack" or "팩" in n: return "pack"
+    return None
+
+def short_usage(u):
+    u = re.sub(r"\s*\d\)\s*|\s*\d\.\s+", " ", u or "").strip()
+    u = re.sub(r"\s+", " ", u)
+    out_ = ""
+    for sent in re.split(r"(?<=[.다요])\s+", u):
+        if len(out_) + len(sent) > 150: break
+        out_ = (out_ + " " + sent).strip()
+    return out_ or u[:150]
+
+SP_EX = re.compile(r"헤어|바디|핸드|풋|립|입술|넥|목|겨드랑|디바이스|세트|키트|&|\d+종 ?(혼합|모음|세트)|체험")
+if len(sys.argv) > 3:
+    r3 = json.load(open(sys.argv[3]))
+    for x in r3["q"]:
+        g = x["g"]; d = r3["d"].get(g) or {}
+        name = x["name"]; brand = x["brand"]
+        if not name or not d.get("i"): continue
+        if len(re.findall(r"\[[^\]]{1,30}\]", d["i"])) >= 2: continue  # 여러 제품 성분이 섞인 모음 구성
+        c = core(name)
+        if SP_EX.search(c): continue
+        cat2 = special_cat(x["src"], c)
+        if not cat2: continue
+        ing = clean_ing(d["i"])
+        if len(ing) < 20 or "상세페이지" in ing or "참조" in ing[:30]: continue
+        price = won(x["org"]) or won(x["cur"])
+        if not price: continue
+        key = (brand, strip_brand(brand, c))
+        if key in seen: continue
+        seen.add(key)
+        vol_txt = d.get("v", "")
+        unit = None; vol = None; units = 1
+        if cat2 in ("pad", "sheet", "patch"):
+            m = re.search(r"(\d+)\s*(매|개입|개|ea|EA|패치|장)", vol_txt) or re.search(r"(\d+)\s*(매|개입|개|패치|장)", c)
+            vol = float(m.group(1)) if m else 1.0
+            unit = "개" if cat2 == "patch" else "장"
+            mu = re.search(r"[xX×*]\s?(\d+)\s?(ea|EA|개|입)", vol_txt)
+            if mu: units = int(mu.group(1))
+        else:
+            m = re.search(r"(\d+(?:\.\d+)?)\s*(ml|mL|ML|g|G)", vol_txt) or re.search(r"(\d+(?:\.\d+)?)\s*(ml|mL|ML|g|G)", c)
+            vol = float(m.group(1)) if m else None
+        item = {
+            "id": g.lower()[-8:], "goodsNo": g, "brand": brand, "name": strip_brand(brand, c), "fullName": name,
+            "category": cat2, "price": price, "salePrice": won(x["cur"]), "priceFrom": "~" in (x["org"] or x["cur"] or ""),
+            "units": units, "volume": vol or 100, "volumeText": vol_txt[:60], "volumeEstimated": vol is None,
+            "spec": d.get("s", "")[:80], "functional": d.get("f", "")[:80], "maker": d.get("m", "")[:80],
+            "ingredients": ing, "forMen": bool(re.search(r"포 ?맨|옴므|맨즈|남성", name)),
+            "rank": x["rank"] or 0, "rankSource": x["src"],
+        }
+        if unit: item["countUnit"] = unit
+        if d.get("u"): item["usage"] = short_usage(d["u"])
+        if x.get("img"): IMG2[g] = x["img"][:2] + ("ko.jpg" if x["img"][2] == "j" else "ko.png")
+        out.append(item)
 # 대표 이미지(올리브영 썸네일). scripts/images.txt: "goodsNo 끝 8자리 + 버전 2자리 + j|p"
 IMG = {}
 for e in open("scripts/images.txt").read().strip().split(","):

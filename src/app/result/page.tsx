@@ -255,6 +255,32 @@ function ResultInner() {
         </ul>
       )}
 
+      {routine.special.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-[19px] font-bold tracking-[-0.02em]">가끔 더하면 좋은 것</h2>
+          <p className="mt-1 text-[13.5px] text-steel">매일 할 필요는 없어요. 위 루틴에 익숙해진 다음, 고민이 신경 쓰이는 날 하나씩 더해 보세요. 합계엔 넣지 않았어요.</p>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {routine.special.map((pk) => {
+              const p = pk.product;
+              const when = p.category === "patch" ? "트러블 났을 때" : p.category === "pad" ? "주 2~3회 정도" : "주 1~2회 정도";
+              return (
+                <li key={p.id}>
+                  <Link href={`/p/${p.id}/`} className="flex h-full gap-3 rounded-2xl border border-line p-4 hover:border-ink">
+                    <ProductThumb src={p.image} brand={p.brand} name={p.name} size={64} />
+                    <span className="min-w-0">
+                      <span className="block text-[12.5px] font-semibold text-lemon-ink">{categoryLabel[p.category]}, {when}</span>
+                      <span className="mt-0.5 block text-[15px] font-bold leading-snug"><span className="font-medium text-steel">{p.brand}</span> {p.name}</span>
+                      <FitLine p={p} className="mt-1.5" />
+                      <span className="mt-1.5 block text-[13px] tabular-nums text-steel">{won(p.price)}{p.priceFrom ? "~" : ""}</span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
       <div className="sticky bottom-4 z-20 mt-10 flex flex-wrap gap-2 rounded-2xl border border-line bg-white/95 p-3 shadow-[0_10px_30px_-12px_rgba(28,36,48,0.3)] backdrop-blur">
         <button type="button" onClick={save} className="btn-lemon flex-1">
           이 루틴으로 정함
