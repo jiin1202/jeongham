@@ -34,7 +34,7 @@ export default function StandardPage() {
       <section className="mt-14 border-t border-line pt-10">
         <h2 className="text-[22px] font-bold tracking-[-0.02em]">데이터 출처</h2>
         <p className="mt-3 text-[15px] leading-7 text-steel">
-          올리브영 온라인몰의 스킨케어·클렌징·선케어·맨즈에딧 판매 랭킹에서 {RESEARCH_DATE}에 조회한 제품 {products.length}개예요.
+          올리브영 온라인몰의 판매 랭킹(스킨케어·클렌징·선케어·맨즈에딧·마스크팩)과 카테고리 목록에서 {RESEARCH_DATE}에 조회한 제품 {products.length}개예요.
           가격은 할인 전 정상가이고, 1+1이나 리필 같은 기획 구성 가격일 수 있어요. 각 제품의 &lsquo;화장품법에 따라 기재해야 하는 모든 성분&rsquo;, 용량, 제품 주요 사양(사용 대상 피부), 기능성 심사 여부를 상품 상세정보에서 그대로 가져와 분석했어요.
         </p>
         <div className="mt-5 flex flex-wrap gap-2 text-[13px]">

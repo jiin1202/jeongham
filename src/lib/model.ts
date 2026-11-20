@@ -152,7 +152,7 @@ function build(r: RawProduct): Product {
 
 export const products: Product[] = (raw as RawProduct[]).map(build);
 export const byId = new Map(products.map((p) => [p.id, p]));
-export const RESEARCH_DATE = "2026-11-17";
+export const RESEARCH_DATE = "2026-11-17~20";
 
 export const categoryLabel: Record<Category, string> = {
   cleanser: "세안",

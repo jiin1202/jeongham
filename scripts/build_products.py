@@ -113,11 +113,13 @@ for row in src["q"]:
     })
 
 # ── 3차 수집분(raw3.json): 패드·시트 마스크·팩·패치(스페셜 케어) ──
-def special_cat(src_, n):
+def special_cat(src_, n, oycat=""):
+    for k, v in (("시트팩", "sheet"), ("패드", "pad"), ("페이셜팩", "pack"), ("패치", "patch"), ("코팩", "patch")):
+        if oycat.endswith(k): return v
     if src_ == "pad" or "패드" in n: return "pad"
     if src_ in ("patch", "nose") or re.search(r"패치|코팩|코 팩|블랙헤드 ?스트립", n): return "patch"
-    if src_ == "sheet" or re.search(r"시트|마스크", n): return "sheet"
-    if src_ == "pack" or "팩" in n: return "pack"
+    if src_ == "sheet" or re.search(r"시트|\d+\s?매|마스크팩|겔 ?마스크|하이드로겔", n): return "sheet"
+    if re.search(r"마스크|팩", n): return "pack"
     return None
 
 def short_usage(u):
@@ -129,7 +131,7 @@ def short_usage(u):
         out_ = (out_ + " " + sent).strip()
     return out_ or u[:150]
 
-SP_EX = re.compile(r"헤어|바디|핸드|풋|립|입술|넥|목|겨드랑|디바이스|세트|키트|&|\d+종 ?(혼합|모음|세트)|체험")
+SP_EX = re.compile(r"\d종|헤어|바디|핸드|풋|립|입술|넥|목|겨드랑|디바이스|세트|키트|&|\d+종 ?(혼합|모음|세트)|체험")
 if len(sys.argv) > 3:
     r3 = json.load(open(sys.argv[3]))
     for x in r3["q"]:
@@ -139,7 +141,7 @@ if len(sys.argv) > 3:
         if len(re.findall(r"\[[^\]]{1,30}\]", d["i"])) >= 2: continue  # 여러 제품 성분이 섞인 모음 구성
         c = core(name)
         if SP_EX.search(c): continue
-        cat2 = special_cat(x["src"], c)
+        cat2 = special_cat(x["src"], c, x.get("cat", ""))
         if not cat2: continue
         ing = clean_ing(d["i"])
         if len(ing) < 20 or "상세페이지" in ing or "참조" in ing[:30]: continue
@@ -186,8 +188,17 @@ for p_ in out:
     p_["name"] = re.sub(r"\s*\([^)]*\)\s*$", "", p_["name"]).replace(" 증정", "").replace(" 대용량", "").strip()
     p_["name"] = re.sub(r"\s\d+(ml|g)$", "", p_["name"])
     p_["name"] = re.sub(r"\s+\d종(\s?택\s?1)?$", "", p_["name"])
+    p_["name"] = re.sub(r"(\s*\d+\s?(매입|매|개입|개|ea|EA|회분)(\s?[xX×]\s?\d+)?\s*/?)+$", "", p_["name"]).strip()
+    p_["name"] = re.sub(r"_?\d+매/\d+매$", "", p_["name"]).strip()
+    p_["name"] = re.sub(r"\s*\d+매(/\d+)?\+?$", "", p_["name"]).strip(" _/")
     p_["name"] = re.sub(r"\s*SPF\s?\d+\+?\s*/?\s*(PA\++)?", "", p_["name"]).strip()
     if p_["name"] in FIX_CAT: p_["category"] = FIX_CAT[p_["name"]]
+_seen2, _out2 = set(), []
+for p_ in out:
+    k = (p_["brand"], p_["name"], p_["category"])
+    if k in _seen2: continue
+    _seen2.add(k); _out2.append(p_)
+out = _out2
 json.dump(out, open("src/data/products.json", "w"), ensure_ascii=False, indent=0)
 from collections import Counter
 print(len(out), Counter(p["category"] for p in out))

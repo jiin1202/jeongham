@@ -244,6 +244,12 @@ const SPECIAL_FOR: Record<string, Category[]> = {
   aging: ["sheet", "pack"],
 };
 
+export function patchKind(p: Product): "trouble" | "nose" | "other" {
+  if (/코팩|코 팩|블랙헤드|돼지코/.test(p.fullName)) return "nose";
+  if (/트러블|스팟|여드름|아크네|블레미쉬|하이드로콜로이드|뾰루지|진정 패치|시카 패치/.test(p.fullName)) return "trouble";
+  return "other";
+}
+
 /** 루틴에 더할 스페셜 케어 최대 2개. 루틴에 이미 강한 활성 성분이 있으면 겹치지 않게 뺀다. */
 export function specialCare(a: Answers, routine: Product[]): Pick[] {
   const routineActive = routine.some((p) => p.activeStrong.length > 0 && p.category !== "cleanser");
@@ -257,10 +263,16 @@ export function specialCare(a: Answers, routine: Product[]): Pick[] {
     for (const p of products) {
       if (p.category !== cat) continue;
       if (routineActive && p.activeStrong.length) continue;
+      if (p.price < 3000) continue; // 체험용 소용량은 제외
+      if (cat === "patch") {
+        const kind = patchKind(p);
+        const want = a.concerns.includes("trouble") && kind === "trouble" ? true : (a.concerns.includes("pore") || a.concerns.includes("oil")) && kind === "nose" ? true : a.concerns.includes("aging") && kind === "other";
+        if (!want) continue;
+      }
       const r = scoreProduct(p, a);
       if (!r) continue;
-      // 고민 성분 근거가 있는 것만
-      if (!a.concerns.some((c) => p.concerns.includes(c)) && a.concerns.length) continue;
+      // 고민 성분 근거가 있는 것만(패치는 종류로 판단)
+      if (cat !== "patch" && !a.concerns.some((c) => p.concerns.includes(c)) && a.concerns.length) continue;
       if (!best || r.score > best.score || (r.score === best.score && p.price < best.product.price)) best = { product: p, ...r };
     }
     if (best) out.push(best);

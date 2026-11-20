@@ -262,7 +262,7 @@ function ResultInner() {
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             {routine.special.map((pk) => {
               const p = pk.product;
-              const when = p.category === "patch" ? "트러블 났을 때" : p.category === "pad" ? "주 2~3회 정도" : "주 1~2회 정도";
+              const when = p.category === "patch" ? (/코팩|블랙헤드|돼지코/.test(p.fullName) ? "주 1회 정도" : "트러블 났을 때") : p.category === "pad" ? "주 2~3회 정도" : "주 1~2회 정도";
               return (
                 <li key={p.id}>
                   <Link href={`/p/${p.id}/`} className="flex h-full gap-3 rounded-2xl border border-line p-4 hover:border-ink">
