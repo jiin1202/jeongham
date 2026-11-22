@@ -140,3 +140,54 @@ insert into storage.buckets (id, name, public) values ('skin', 'skin', false) on
 create policy "own photos read" on storage.objects for select using (bucket_id = 'skin' and auth.uid()::text = (storage.foldername(name))[1]);
 create policy "own photos write" on storage.objects for insert with check (bucket_id = 'skin' and auth.uid()::text = (storage.foldername(name))[1]);
 create policy "own photos delete" on storage.objects for delete using (bucket_id = 'skin' and auth.uid()::text = (storage.foldername(name))[1]);
+-- 4주 플랜 목표일 + "나 같은 남자" 4주 후기 집계
+
+alter table routines add column if not exists goal jsonb;
+
+-- 4주 후기: 로그인 없이도 남길 수 있게 익명 ID 기준. 개인 식별 정보는 받지 않음
+create table if not exists reviews (
+  id bigint generated always as identity primary key,
+  anon_id text not null,
+  user_id uuid references auth.users on delete set null,
+  product_id text not null,
+  skin_type text not null check (skin_type in ('dry','oily','combo','normal')),
+  concern text,
+  sensitive text,
+  shave text,
+  days_used int not null check (days_used >= 21),
+  rating int not null check (rating between 1 and 5),
+  change text not null check (change in ('better','same','worse')),
+  again boolean not null,
+  created_at timestamptz default now(),
+  unique (anon_id, product_id)
+);
+alter table reviews enable row level security;
+-- 직접 읽기·쓰기는 막고, 아래 함수로만 넣고 집계만 읽는다
+revoke all on reviews from anon, authenticated;
+
+create or replace function submit_review(
+  p_anon text, p_product text, p_skin text, p_concern text, p_sensitive text, p_shave text,
+  p_days int, p_rating int, p_change text, p_again boolean
+) returns void language plpgsql security definer set search_path = public as $$
+begin
+  if length(coalesce(p_anon, '')) < 8 or length(p_product) > 20 then raise exception 'bad input'; end if;
+  insert into reviews (anon_id, user_id, product_id, skin_type, concern, sensitive, shave, days_used, rating, change, again)
+  values (p_anon, auth.uid(), p_product, p_skin, p_concern, p_sensitive, p_shave, p_days, p_rating, p_change, p_again)
+  on conflict (anon_id, product_id) do update
+    set rating = excluded.rating, change = excluded.change, again = excluded.again, days_used = excluded.days_used, created_at = now();
+end $$;
+grant execute on function submit_review(text,text,text,text,text,text,int,int,text,boolean) to anon, authenticated;
+
+-- 제품별 · 피부 타입별 집계. 3명 미만 그룹은 내보내지 않음(개인 추정 방지)
+create or replace function peer_results(p_product text)
+returns table(skin_type text, n bigint, avg_rating numeric, better_pct int, again_pct int)
+language sql security definer set search_path = public as $$
+  select skin_type, count(*), round(avg(rating)::numeric, 1),
+         round(100.0 * avg((change = 'better')::int))::int, round(100.0 * avg(again::int))::int
+  from reviews where product_id = p_product group by skin_type having count(*) >= 3
+  union all
+  select 'all', count(*), round(avg(rating)::numeric, 1),
+         round(100.0 * avg((change = 'better')::int))::int, round(100.0 * avg(again::int))::int
+  from reviews where product_id = p_product having count(*) >= 3;
+$$;
+grant execute on function peer_results(text) to anon, authenticated;

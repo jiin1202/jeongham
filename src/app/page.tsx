@@ -167,7 +167,7 @@ export default function Home() {
           {[
             { t: "질문 8개로 피부 파악", d: "세안 후 느낌, 고민, 예민도, 면도 주기, 원하는 단계와 예산까지 탭 몇 번으로 답해요." },
             { t: `${products.length}개 제품을 대신 비교`, d: "전성분에서 고민에 맞는 성분과 자극 가능 성분을 찾고, 피부 타입·제형·예산까지 따져 단계마다 하나씩만 골라요." },
-            { t: "다 쓸 때까지 챙겨요", d: "아침·저녁 체크와 용량 기준 소진 예정일로 재구매 시점을 알려드려요." },
+            { t: "효과 볼 때까지 4주 챙겨요", d: "주차별로 할 일만 알려드려요. 4주 뒤엔 나랑 같은 피부 타입 남자들이 실제로 써본 결과도 볼 수 있어요." },
           ].map((s, i) => (
             <li key={s.t} className="bg-white p-7 sm:p-8">
               <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-lemon-deep text-[14px] font-bold text-lemon-ink">{i + 1}</span>
@@ -178,8 +178,42 @@ export default function Home() {
         </ol>
       </section>
 
+      {/* 4주 플랜 */}
+      <section className="border-y border-line bg-fog">
+        <div className="page grid gap-10 py-20 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+          <div>
+            <h2 className="text-[30px] font-extrabold leading-tight tracking-[-0.035em] sm:text-[36px]">
+              면접까지 4주 남았다면,
+              <br />
+              지금 시작하면 딱 맞아요
+            </h2>
+            <p className="mt-4 max-w-md text-[16px] leading-7 text-steel">
+              트러블 케어는 최소 4주는 써봐야 알 수 있대요. 루틴을 정하고 날짜만 넣으면, 그날에 맞춰 주차별로 할 일을 챙겨드려요.
+            </p>
+            <Link href="/check" className="btn-primary mt-8">4주 루틴 정하기</Link>
+          </div>
+          <ol className="grid gap-2">
+            {[
+              ["1주차", "바르는 습관부터", "아침·저녁 체크, 첫 피부 사진"],
+              ["2주차", "성분에 적응하기", "센 성분은 이틀에 한 번 저녁에만"],
+              ["3주차", "필요하면 하나 더", "팩이나 패치를 주 1~2회"],
+              ["4주차", "결과 확인", "첫 주 사진과 비교, 4주 후기"],
+              ["D-7", "새 제품은 그만", "쓰던 그대로 가요"],
+            ].map(([w, t, d], i) => (
+              <li key={w} className={`flex items-center gap-4 rounded-2xl px-5 py-4 ${i === 4 ? "bg-ink text-white" : "bg-white"}`}>
+                <span className={`w-12 shrink-0 text-[13px] font-bold ${i === 4 ? "text-lemon" : "text-lemon-ink"}`}>{w}</span>
+                <span>
+                  <span className="block text-[15.5px] font-bold">{t}</span>
+                  <span className={`block text-[13.5px] ${i === 4 ? "text-white/70" : "text-steel"}`}>{d}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
       {/* CTA */}
-      <section className="page">
+      <section className="page pt-20">
         <div className="flex flex-col items-start justify-between gap-6 rounded-[28px] bg-lemon px-8 py-12 text-ink sm:flex-row sm:items-center sm:px-12">
           <div>
             <h2 className="text-[26px] font-extrabold tracking-[-0.03em] sm:text-[30px]">오늘 밤 바를 것까지 1분이면 정해져요</h2>

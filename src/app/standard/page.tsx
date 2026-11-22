@@ -70,11 +70,19 @@ export default function StandardPage() {
             {(Object.keys(dailyUse) as Category[]).map((c) => (
               <tr key={c}>
                 <td className="py-2.5">{categoryLabel[c]}</td>
-                <td className="py-2.5 text-right tabular-nums text-steel">하루 {dailyUse[c]}ml(g)</td>
+                <td className="py-2.5 text-right tabular-nums text-steel">{c === "pad" || c === "sheet" || c === "patch" ? `주 ${Math.round(dailyUse[c] * 7)}${c === "patch" ? "개" : "장"}` : c === "pack" ? `주 1~2회, 하루 평균 ${dailyUse[c]}g` : `하루 ${dailyUse[c]}ml(g)`}</td>
               </tr>
             ))}
           </tbody>
         </table>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-[22px] font-bold tracking-[-0.02em]">나 같은 남자들의 4주 후기</h2>
+        <p className="mt-3 text-[15px] leading-7 text-steel">
+          정함에서 루틴을 정하고 3주 넘게 쓴 사람만 후기를 남길 수 있어요. 만족도(5점), 고민이 좋아졌는지, 다 쓰면 또 살지를 받아서 피부 타입별로 묶어요.
+          같은 피부 타입이 3명 미만이면 숫자를 보여주지 않아요. 협찬받은 후기나 체험단 후기는 받지 않아요.
+        </p>
       </section>
 
       <section className="mt-10 rounded-2xl bg-fog p-6">

@@ -3,9 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
 import FitLine from "@/components/FitLine";
-import { loadSaved, loadFeedback, today, type Saved, type Feedback } from "@/lib/store";
-import { clearSaved, saveSaved, saveFeedback } from "@/lib/sync";
-import { daysToEmpty } from "@/lib/engine";
+import { loadSaved, loadFeedback, loadLogs, today, type Saved, type Feedback, type SkinLog, type Review } from "@/lib/store";
+import { clearSaved, saveSaved, saveFeedback, submitReview } from "@/lib/sync";
+import { daysToEmpty, specialCare } from "@/lib/engine";
+import { buildPlan } from "@/lib/plan";
 import { byId, categoryLabel, oliveyoungUrl, buyUrl, type Product } from "@/lib/model";
 import { skinTypeLabel, skinTypeOf } from "@/lib/quiz";
 import { useAuth } from "@/lib/auth";
@@ -40,7 +41,7 @@ function Stars({ value, onChange, label }: { value: number; onChange: (v: number
   return (
     <div role="radiogroup" aria-label={label} className="flex gap-1">
       {[1, 2, 3, 4, 5].map((n) => (
-        <button key={n} type="button" role="radio" aria-checked={value === n} aria-label={`${n}점`} onClick={() => onChange(n)} className={`h-9 w-9 rounded-lg text-[15px] font-bold ${n <= value ? "bg-lemon-deep text-ink" : "bg-fog text-mist hover:text-ink"}`}>
+        <button key={n} type="button" role="radio" aria-checked={value === n} aria-label={`${n}점`} onClick={() => onChange(n)} className={`h-9 w-9 rounded-lg text-[15px] font-bold ${n <= value ? "bg-lemon-deep text-ink" : "bg-white text-mist ring-1 ring-line hover:text-ink"}`}>
           {n}
         </button>
       ))}
@@ -52,6 +53,10 @@ export default function MePage() {
   const { user } = useAuth();
   const [s, setS] = useState<Saved | null>(null);
   const [fb, setFb] = useState<Feedback>({});
+  const [logs, setLogs] = useState<SkinLog[]>([]);
+  const [goalOpen, setGoalOpen] = useState(false);
+  const [goalDraft, setGoalDraft] = useState({ date: "", label: "면접" });
+  const [sentMsg, setSentMsg] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -59,9 +64,25 @@ export default function MePage() {
     const load = () => {
       setS(loadSaved());
       setFb(loadFeedback());
+      setLogs(loadLogs());
     };
     load();
     setReady(true);
+    // 서버 연결 전에 저장만 된 4주 후기는 다음 방문 때 다시 보낸다
+    const sv = loadSaved();
+    const f0 = loadFeedback();
+    if (sv && cloudEnabled) {
+      const startKey = Object.values(sv.start).sort()[0];
+      const days = startKey ? Math.floor((Date.now() - new Date(startKey + "T00:00:00").getTime()) / 86400000) : 0;
+      const pending = Object.entries(f0).filter(([, r]) => r.sent && !r.synced);
+      if (pending.length && days >= 21) {
+        Promise.all(pending.map(([pid, r]) => submitReview(pid, sv.answers, r, days).then((ok) => [pid, ok] as const))).then((res) => {
+          const next = { ...loadFeedback() };
+          res.forEach(([pid, ok]) => { if (ok) next[pid] = { ...next[pid], synced: true }; });
+          saveFeedback(next);
+        });
+      }
+    }
     window.addEventListener("jh-store", load);
     return () => window.removeEventListener("jh-store", load);
   }, []);
@@ -123,6 +144,28 @@ export default function MePage() {
     saveFeedback(next);
     track("rate", { id, rating });
   };
+  const setReview = (id: string, patch: Partial<Review>) => {
+    const next: Feedback = { ...fb, [id]: { ...(fb[id] ?? { rating: 0 }), ...patch } };
+    setFb(next);
+    saveFeedback(next);
+  };
+  const sendReview = async (id: string) => {
+    const r = fb[id];
+    if (!r || !r.rating || !r.change || r.again === undefined) return;
+    const ok = await submitReview(id, s.answers, r, daysIn);
+    setReview(id, { sent: t, synced: ok });
+    track("review_4w", { id, change: r.change, again: r.again });
+    setSentMsg(ok ? "후기를 보냈어요. 같은 피부 타입 남자들의 결과에 더해져요." : "후기를 이 기기에 저장했어요. 집계 서버가 연결되면 같이 보내져요.");
+    setTimeout(() => setSentMsg(null), 3500);
+  };
+  const special = specialCare(s.answers, items).map((x) => x.product);
+  const plan = buildPlan(s, items, special, logs, fb, t);
+  const saveGoal = () => {
+    if (!goalDraft.date) return;
+    update({ ...s, goal: { date: goalDraft.date, label: goalDraft.label } });
+    track("set_goal", { label: goalDraft.label });
+    setGoalOpen(false);
+  };
 
   return (
     <div className="page max-w-[760px] pb-10 pt-10 sm:pt-14">
@@ -165,6 +208,80 @@ export default function MePage() {
         <PushSettings />
       </div>
 
+      <section className="mt-14" aria-labelledby="plan-h">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 id="plan-h" className="text-[20px] font-bold tracking-[-0.02em]">4주 플랜</h2>
+            <p className="mt-1 text-[14px] text-steel">
+              {plan.done ? "4주를 다 채웠어요. 써본 결과를 남겨 주세요." : `${plan.current}주차예요. 효과는 4주 써본 뒤에 판단해요.`}
+            </p>
+          </div>
+          {plan.goal ? (
+            <button type="button" onClick={() => { setGoalDraft({ date: s.goal!.date, label: s.goal!.label }); setGoalOpen((v) => !v); }} className="rounded-full bg-ink px-3.5 py-1.5 text-[13.5px] font-bold text-white">
+              {plan.goal.label} {plan.goal.dLeft > 0 ? `D-${plan.goal.dLeft}` : plan.goal.dLeft === 0 ? "D-DAY" : "지났어요"}
+            </button>
+          ) : (
+            <button type="button" onClick={() => setGoalOpen((v) => !v)} className="rounded-full border border-line px-3.5 py-1.5 text-[13.5px] font-medium hover:border-ink">
+              중요한 날 정하기
+            </button>
+          )}
+        </div>
+
+        {goalOpen && (
+          <div className="mt-4 flex flex-wrap items-end gap-3 rounded-2xl bg-fog p-4">
+            <label className="text-[13px] font-semibold">
+              무슨 날이에요?
+              <select value={goalDraft.label} onChange={(e) => setGoalDraft({ ...goalDraft, label: e.target.value })} className="mt-1 block h-10 rounded-lg border border-line bg-white px-3 text-[14px] font-normal">
+                {["면접", "발표", "소개팅", "촬영", "졸업식", "여행"].map((x) => <option key={x}>{x}</option>)}
+              </select>
+            </label>
+            <label className="text-[13px] font-semibold">
+              날짜
+              <input type="date" value={goalDraft.date} min={t} onChange={(e) => setGoalDraft({ ...goalDraft, date: e.target.value })} className="mt-1 block h-10 rounded-lg border border-line bg-white px-3 text-[14px] font-normal" />
+            </label>
+            <button type="button" onClick={saveGoal} disabled={!goalDraft.date} className="btn-primary h-10 px-4 text-[14px] disabled:opacity-40">저장</button>
+            {s.goal && (
+              <button type="button" onClick={() => { update({ ...s, goal: undefined }); setGoalOpen(false); }} className="h-10 px-2 text-[13.5px] text-steel underline underline-offset-4">지우기</button>
+            )}
+          </div>
+        )}
+
+        {plan.goal?.freeze && (
+          <p className="mt-4 rounded-2xl bg-amber-wash px-5 py-4 text-[14px] leading-6">
+            <b>{plan.goal.label}까지 일주일도 안 남았어요.</b> 지금부터는 새 제품을 시작하지 말고, 쓰던 그대로 가요. 처음 쓰는 제품이 하필 그날 안 맞으면 되돌릴 시간이 없어요.
+          </p>
+        )}
+
+        <ol className="mt-5 grid gap-3 sm:grid-cols-2">
+          {plan.weeks.map((w) => {
+            const now = w.n === plan.current && !plan.done;
+            const past = w.n < plan.current || plan.done;
+            return (
+              <li key={w.n} className={`rounded-2xl border p-5 ${now ? "border-ink bg-lemon-wash" : "border-line"} ${!now && !past ? "opacity-60" : ""}`}>
+                <p className="text-[12.5px] font-semibold text-lemon-ink">{w.n}주차{now ? ", 지금" : ""}</p>
+                <p className="mt-0.5 text-[16px] font-bold">{w.title}</p>
+                <ul className="mt-3 space-y-1.5 text-[14px]">
+                  {w.tasks.map((k) => (
+                    <li key={k.text} className="flex gap-2">
+                      {k.done === undefined ? (
+                        <span aria-hidden className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-lemon-deep mx-[5px]" />
+                      ) : (
+                        <span aria-hidden className={`mt-[3px] grid h-4 w-4 shrink-0 place-items-center rounded-[5px] text-[10px] ${k.done ? "bg-ink text-white" : "border border-mist/60"}`}>{k.done ? "✓" : ""}</span>
+                      )}
+                      <span className={k.done ? "text-steel line-through decoration-mist" : ""}>
+                        {k.href ? <Link href={k.href} className="underline decoration-line underline-offset-4 hover:decoration-ink">{k.text}</Link> : k.text}
+                        <span className="sr-only">{k.done ? " (완료)" : ""}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {w.note && now && <p className="mt-3 text-[12.5px] leading-5 text-steel">{w.note}</p>}
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+
       <h2 className="mt-14 text-[20px] font-bold tracking-[-0.02em]">다 쓰는 날</h2>
       <p className="mt-1 text-[14px] text-steel">용량을 하루 사용량 추정치로 나눠 계산했어요. 실제와 다를 수 있어요.</p>
       <ul className="mt-5 divide-y divide-line border-y border-line">
@@ -200,17 +317,50 @@ export default function MePage() {
                   다 썼어요, 재구매
                 </a>
               </div>
-              {daysIn >= 7 && (
+              {daysIn >= 7 && daysIn < 21 && (
                 <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-fog px-4 py-3">
                   <span className="text-[13.5px] text-steel">써보니 어때요?</span>
                   <Stars label={`${p.name} 만족도`} value={fb[p.id]?.rating ?? 0} onChange={(v) => rateFb(p.id, v)} />
+                </div>
+              )}
+              {daysIn >= 21 && (
+                <div className="mt-4 rounded-xl bg-fog px-4 py-4">
+                  <p className="text-[14px] font-bold">{fb[p.id]?.sent ? "4주 후기를 남겼어요" : "4주 써본 결과를 남겨 주세요"}</p>
+                  <p className="mt-0.5 text-[12.5px] text-steel">{skinTypeLabel[skinTypeOf(s.answers)]} 피부라는 것만 같이 집계돼요. 이름이나 연락처는 보내지 않아요.</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <span className="w-24 text-[13.5px] text-steel">만족도</span>
+                    <Stars label={`${p.name} 만족도`} value={fb[p.id]?.rating ?? 0} onChange={(v) => setReview(p.id, { rating: v })} />
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="w-24 text-[13.5px] text-steel">고민은요?</span>
+                    {([["better", "좋아졌어요"], ["same", "그대로예요"], ["worse", "나빠졌어요"]] as const).map(([v, l]) => (
+                      <button key={v} type="button" aria-pressed={fb[p.id]?.change === v} onClick={() => setReview(p.id, { change: v })} className={`h-9 rounded-lg px-3 text-[13.5px] font-medium ${fb[p.id]?.change === v ? "bg-ink text-white" : "bg-white hover:bg-lemon-wash"}`}>{l}</button>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="w-24 text-[13.5px] text-steel">또 살래요?</span>
+                    {([[true, "네"], [false, "아니요"]] as const).map(([v, l]) => (
+                      <button key={l} type="button" aria-pressed={fb[p.id]?.again === v} onClick={() => setReview(p.id, { again: v })} className={`h-9 rounded-lg px-3 text-[13.5px] font-medium ${fb[p.id]?.again === v ? "bg-ink text-white" : "bg-white hover:bg-lemon-wash"}`}>{l}</button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={!fb[p.id]?.rating || !fb[p.id]?.change || fb[p.id]?.again === undefined}
+                    onClick={() => sendReview(p.id)}
+                    className="btn-primary mt-3 h-10 px-4 text-[14px] disabled:opacity-40"
+                  >
+                    {fb[p.id]?.sent ? "후기 고쳐서 다시 보내기" : "후기 보내기"}
+                  </button>
                 </div>
               )}
             </li>
           );
         })}
       </ul>
-      {daysIn < 7 && <p className="mt-3 text-[13px] text-mist">일주일 써본 뒤에 제품별 만족도를 남길 수 있어요. 남긴 점수는 다른 사람의 추천에 반영돼요.</p>}
+      {daysIn < 7 && <p className="mt-3 text-[13px] text-mist">일주일 써본 뒤에 제품별 만족도를, 3주가 지나면 4주 후기를 남길 수 있어요. 남긴 후기는 같은 피부 타입 남자들에게 보여줘요.</p>}
+      {sentMsg && (
+        <p role="status" className="fixed bottom-6 left-1/2 z-40 w-[min(92vw,420px)] -translate-x-1/2 rounded-2xl bg-ink px-4 py-3 text-center text-[14px] leading-6 text-white">{sentMsg}</p>
+      )}
 
       <div className="mt-10 flex flex-wrap gap-2">
         <Link href="/result/" className="btn-ghost">루틴 결과 다시 보기</Link>

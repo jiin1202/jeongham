@@ -9,10 +9,13 @@ import {
   saveLogsLocal,
   saveSavedLocal,
   clearSavedLocal,
+  anonId,
   type Feedback,
+  type Review,
   type Saved,
   type SkinLog,
 } from "./store";
+import { skinTypeOf, type Answers } from "./quiz";
 
 async function uid() {
   if (!supabase) return null;
@@ -24,7 +27,7 @@ export async function saveSaved(s: Saved) {
   saveSavedLocal(s);
   const u = await uid();
   if (!u || !supabase) return;
-  await supabase.from("routines").upsert({ user_id: u, answers: s.answers, ids: s.ids, start: s.start, updated_at: new Date().toISOString() });
+  await supabase.from("routines").upsert({ user_id: u, answers: s.answers, ids: s.ids, start: s.start, goal: s.goal ?? null, updated_at: new Date().toISOString() });
   const rows = Object.entries(s.checks).map(([day, c]) => ({ user_id: u, day, am: !!c.am, pm: !!c.pm }));
   if (rows.length) await supabase.from("checks").upsert(rows.slice(-60));
 }
@@ -77,7 +80,7 @@ export async function pullFromCloud(u: string) {
     const { data: ch } = await supabase.from("checks").select("day,am,pm").eq("user_id", u).gte("day", new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10));
     const checks: Saved["checks"] = { ...(local?.checks ?? {}) };
     (ch ?? []).forEach((c: { day: string; am: boolean; pm: boolean }) => (checks[c.day] = { am: c.am || checks[c.day]?.am, pm: c.pm || checks[c.day]?.pm }));
-    saveSavedLocal({ answers: r.answers, ids: r.ids, start: r.start, checks });
+    saveSavedLocal({ answers: r.answers, ids: r.ids, start: r.start, checks, goal: r.goal ?? local?.goal });
   } else if (local) {
     await saveSaved(local);
   }
@@ -103,4 +106,23 @@ export async function fetchRatings() {
   const out: Record<string, { avg: number; n: number }> = {};
   (data ?? []).forEach((r: { product_id: string; avg: number; n: number }) => (out[r.product_id] = { avg: Number(r.avg), n: Number(r.n) }));
   return out;
+}
+
+/** 4주 후기를 같은 조건 집계로 보낸다(로그인 없이도 익명 ID로). 클라우드가 없으면 false */
+export async function submitReview(productId: string, a: Answers, r: Review, daysUsed: number) {
+  if (!supabase || !r.change || r.again === undefined) return false;
+  const { error } = await supabase.rpc("submit_review", {
+    p_anon: anonId(), p_product: productId, p_skin: skinTypeOf(a), p_concern: a.concerns[0] ?? null,
+    p_sensitive: a.sensitive ?? null, p_shave: a.shave ?? null, p_days: daysUsed,
+    p_rating: r.rating, p_change: r.change, p_again: r.again,
+  });
+  return !error;
+}
+
+export type PeerRow = { skin_type: string; n: number; avg_rating: number; better_pct: number; again_pct: number };
+export async function fetchPeer(productId: string): Promise<PeerRow[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc("peer_results", { p_product: productId });
+  if (error) return null;
+  return (data ?? []).map((x: PeerRow) => ({ ...x, n: Number(x.n), avg_rating: Number(x.avg_rating) }));
 }

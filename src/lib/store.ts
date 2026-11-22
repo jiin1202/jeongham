@@ -6,6 +6,8 @@ export type Saved = {
   ids: string[];
   start: Record<string, string>;
   checks: Record<string, { am?: boolean; pm?: boolean }>;
+  /** 4주 플랜의 목표일(면접·발표 등). 없으면 루틴 시작일 기준 4주 */
+  goal?: { date: string; label: string };
 };
 
 export type SkinLog = {
@@ -18,7 +20,18 @@ export type SkinLog = {
   photo?: string; // 로컬: dataURL, 클라우드: storage 경로
 };
 
-export type Feedback = Record<string, { rating: number; comment?: string }>;
+export type Review = {
+  rating: number;
+  comment?: string;
+  /** 4주 후기: 고민 변화와 재구매 의향 */
+  change?: "better" | "same" | "worse";
+  again?: boolean;
+  /** 같은 조건 집계로 보낸 날 */
+  sent?: string;
+  /** 집계 서버에 실제로 들어갔는지 */
+  synced?: boolean;
+};
+export type Feedback = Record<string, Review>;
 
 const K = { ans: "jh.answers", saved: "jh.saved", mine: "jh.mine", logs: "jh.logs", fb: "jh.feedback", anon: "jh.anon", events: "jh.events", diag: "jh.diag" };
 

@@ -7,6 +7,7 @@ import FitLine from "@/components/FitLine";
 import { pairsFor } from "@/lib/pairs";
 import { daysToEmpty } from "@/lib/engine";
 import ProductActions from "./ProductActions";
+import PeerResults from "./PeerResults";
 import ProductThumb from "@/components/ProductThumb";
 
 export const dynamicParams = false;
@@ -118,6 +119,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           ))}
         </div>
       </section>
+
+      <PeerResults id={p.id} />
 
       {pairs.length > 0 && (
         <section className="mt-12">
