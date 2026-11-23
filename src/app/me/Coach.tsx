@@ -54,6 +54,14 @@ export default function Coach({ s, logs, fb, today, update }: Props) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState<Record<string, "approved" | "declined" | "done">>({});
+  // 코치가 먼저 보낸 알림(자율 실행)을 눌러 들어왔는지
+  const [fromPush, setFromPush] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("from") === "coach") {
+      setFromPush(true);
+      track("coach_push_open", {});
+    }
+  }, []);
 
   const run = useCallback(
     async (force: boolean) => {
@@ -127,10 +135,10 @@ export default function Coach({ s, logs, fb, today, update }: Props) {
   const acts = (res?.actions ?? []).filter((a) => a.type !== "message");
 
   return (
-    <section aria-labelledby="coach-h" className="mt-10 overflow-hidden rounded-3xl border border-ink/10 bg-lemon-wash">
+    <section id="coach" aria-labelledby="coach-h" className="scroll-mt-20 mt-10 overflow-hidden rounded-3xl border border-ink/10 bg-lemon-wash">
       <div className="flex flex-wrap items-start justify-between gap-3 px-6 pt-6">
         <div>
-          <p id="coach-h" className="text-[13px] font-semibold text-lemon-ink">정함 코치</p>
+          <p id="coach-h" className="text-[13px] font-semibold text-lemon-ink">정함 코치{fromPush && <span className="ml-2 font-normal text-steel">알림 보고 들어왔군요. 지금 기록으로 다시 봤어요.</span>}</p>
           <p className="mt-1 text-[19px] font-bold leading-snug tracking-[-0.02em]">{busy ? "오늘 기록을 보고 판단하는 중이에요" : err ? "판단하지 못했어요" : msg?.text}</p>
           {err && <p className="mt-1 text-[14px] text-steel">{err}</p>}
         </div>

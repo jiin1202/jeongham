@@ -221,3 +221,7 @@ language sql security definer set search_path = public as $$
   update coach_runs set outcome = p_outcome where id = p_id and anon_id = p_anon;
 $$;
 grant execute on function coach_outcome(text,bigint,jsonb) to anon, authenticated;
+
+-- 코치 자율 실행(매일 크론): 사용자가 연 것(user)과 에이전트가 먼저 연락한 것(auto)을 구분
+alter table coach_runs add column if not exists trigger text not null default 'user' check (trigger in ('user','auto'));
+create index if not exists coach_runs_auto_idx on coach_runs (user_id, created_at) where trigger = 'auto';

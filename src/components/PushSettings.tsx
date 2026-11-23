@@ -104,7 +104,7 @@ export default function PushSettings() {
             <p className="text-steel">브라우저 설정에서 이 사이트의 알림이 막혀 있어요. 사이트 설정에서 알림을 허용한 뒤 다시 눌러주세요.</p>
           ) : (
             <>
-              <p className="text-steel">체크를 안 한 날에만 보내요. 다 써갈 때는 재구매 알림도 한 번 보내요.</p>
+              <p className="text-steel">체크를 안 한 날에만 보내요. 그리고 저녁에 코치가 기록을 보고 며칠 빠졌거나, 따가웠거나, 제품이 다 떨어져 가면 먼저 한 번 연락해요. 하루 한 번을 넘기지 않아요. 아이폰은 Safari에서 '홈 화면에 추가'한 뒤 켜야 와요.</p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <label className="flex items-center gap-2">
                   아침

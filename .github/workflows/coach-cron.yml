@@ -1,0 +1,17 @@
+name: coach-autonomous
+# 정함 코치 자율 실행: 매일 20:07 KST(11:07 UTC)에 사용자 기록을 확인하고, 연락할 이유가 있을 때만 판단·알림
+on:
+  schedule:
+    - cron: "7 11 * * *"
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: "1이면 판단만 하고 알림·기록은 하지 않음"
+        default: "0"
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call coach cron endpoint
+        run: |
+          curl -fsS --max-time 70 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "${{ secrets.SITE_URL }}/api/cron/coach/?dry=${{ github.event.inputs.dry || '0' }}"
