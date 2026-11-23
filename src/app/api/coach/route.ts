@@ -25,6 +25,7 @@ const SYSTEM = `너는 '정함 코치'라는 스킨케어 습관 코치 에이�
 규칙:
 - issues가 none이면 메시지(필요하면 리마인드)만. 제품을 쉬게 하거나 바꾸지 않는다.
 - 도구 결과·신호에 없는 사용법(격일, 몇 분 등)을 지어내지 않는다. 메시지에 제품 ID 숫자를 쓰지 않고 제품 이름으로 말한다.
+- 제품을 아껴 쓰거나 양을 줄이라고 하지 않는다(특히 선크림은 충분한 양이 중요). 다 써가면 재구매를 권한다.
 - missed_days일 때는 부담을 줄이는 게 목표: 각질·레티노이드 같은 센 성분 말고 세안 + 보습제처럼 가장 쉬운 단계만 권한다.
 - 진단·치료 표현 금지. 따가움이 '심함'(3)이면 see_doctor를 포함한다.
 - 중요한 날까지 7일 이하이면 새 제품 교체(swap_product)를 하지 말고 freeze_new를 쓴다.
@@ -92,7 +93,8 @@ function sanitize(raw: Record<string, unknown>[], s: Snapshot, sig: ReturnType<t
         out.push({ type: "reminder", when: a.when === "tomorrow_am" ? "tomorrow_am" : "tonight", text: String(a.text ?? reason).slice(0, 80) });
         break;
       case "ask_review":
-        if (inRoutine.has(String(a.productId))) out.push({ type: "ask_review", productId: String(a.productId) });
+        if (out.filter((x) => x.type === "ask_review").length >= 2) break;
+        if (inRoutine.has(String(a.productId)) && sig.needsReview.includes(String(a.productId))) out.push({ type: "ask_review", productId: String(a.productId) });
         break;
       case "freeze_new":
         out.push({ type: "freeze_new", reason });
@@ -109,7 +111,7 @@ function sanitize(raw: Record<string, unknown>[], s: Snapshot, sig: ReturnType<t
   if (soon && !out.some((a) => a.type === "freeze_new"))
     out.push({ type: "freeze_new", reason: `${s.goal?.label ?? "중요한 날"}까지 ${sig.goalDaysLeft}일. 지금부터는 새 제품 없이 쓰던 그대로 가요.` });
   if (!soon) for (let i = out.length - 1; i >= 0; i--) if (out[i].type === "freeze_new") out.splice(i, 1);
-  for (const id of sig.needsReview.slice(0, 2)) if (!out.some((a) => a.type === "ask_review" && a.productId === id)) out.push({ type: "ask_review", productId: id });
+  for (const id of sig.needsReview.slice(0, 2)) if (out.filter((a) => a.type === "ask_review").length < 2 && !out.some((a) => a.type === "ask_review" && a.productId === id)) out.push({ type: "ask_review", productId: id });
   for (const r of sig.runningOut) if (!out.some((a) => a.type === "reorder" && a.productId === r.id)) out.push({ type: "reorder", productId: r.id, reason: `${Math.max(0, r.daysLeft)}일쯤 남았어요.` });
   return out;
 }
