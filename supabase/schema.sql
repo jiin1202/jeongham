@@ -225,3 +225,11 @@ grant execute on function coach_outcome(text,bigint,jsonb) to anon, authenticate
 -- 코치 자율 실행(매일 크론): 사용자가 연 것(user)과 에이전트가 먼저 연락한 것(auto)을 구분
 alter table coach_runs add column if not exists trigger text not null default 'user' check (trigger in ('user','auto'));
 create index if not exists coach_runs_auto_idx on coach_runs (user_id, created_at) where trigger = 'auto';
+
+-- 권한(GRANT): 새 Supabase 프로젝트에서 public 테이블 권한이 자동으로 주어지지 않는 것을 확인함(2026-11-23).
+-- 행 단위 접근은 위의 RLS 정책이 막고, 여기서는 역할별로 쓸 수 있는 작업만 연다.
+grant usage on schema public to anon, authenticated, service_role;
+grant select, insert, update, delete on profiles, routines, checks, skin_logs, feedback, push_subs to authenticated;
+grant insert on diagnoses, events to anon, authenticated;
+grant all on all tables in schema public to service_role;
+grant usage on all sequences in schema public to anon, authenticated, service_role;
