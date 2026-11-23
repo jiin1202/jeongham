@@ -47,6 +47,7 @@ create table if not exists skin_logs (
   trouble int check (trouble between 0 and 3),
   oil int check (oil between 0 and 3),
   dry int check (dry between 0 and 3),
+  irritation int check (irritation between 0 and 3),
   note text,
   photo_path text,
   created_at timestamptz default now()
@@ -191,3 +192,32 @@ language sql security definer set search_path = public as $$
   from reviews where product_id = p_product having count(*) >= 3;
 $$;
 grant execute on function peer_results(text) to anon, authenticated;
+
+-- 정함 코치 에이전트 실행 기록(판단 과정과 행동). 본인만 읽기, 익명 사용자는 anon_id로만 저장
+create table if not exists coach_runs (
+  id bigint generated always as identity primary key,
+  anon_id text not null,
+  user_id uuid references auth.users on delete set null,
+  mode text not null check (mode in ('llm','rules')),
+  signals jsonb not null,
+  steps jsonb not null,
+  actions jsonb not null,
+  outcome jsonb,
+  created_at timestamptz default now()
+);
+alter table coach_runs enable row level security;
+revoke all on coach_runs from anon, authenticated;
+create or replace function log_coach_run(p_anon text, p_mode text, p_signals jsonb, p_steps jsonb, p_actions jsonb)
+returns bigint language plpgsql security definer set search_path = public as $$
+declare rid bigint;
+begin
+  if length(coalesce(p_anon, '')) < 8 then raise exception 'bad input'; end if;
+  insert into coach_runs (anon_id, user_id, mode, signals, steps, actions) values (p_anon, auth.uid(), p_mode, p_signals, p_steps, p_actions) returning id into rid;
+  return rid;
+end $$;
+grant execute on function log_coach_run(text,text,jsonb,jsonb,jsonb) to anon, authenticated;
+create or replace function coach_outcome(p_anon text, p_id bigint, p_outcome jsonb) returns void
+language sql security definer set search_path = public as $$
+  update coach_runs set outcome = p_outcome where id = p_id and anon_id = p_anon;
+$$;
+grant execute on function coach_outcome(text,bigint,jsonb) to anon, authenticated;

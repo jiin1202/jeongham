@@ -129,6 +129,7 @@ export default function LogPage() {
         <Scale label="트러블" value={f.trouble} onChange={(v) => setF({ ...f, trouble: v })} n={LEVEL} />
         <Scale label="번들거림" value={f.oil} onChange={(v) => setF({ ...f, oil: v })} n={LEVEL} />
         <Scale label="건조함·당김" value={f.dry} onChange={(v) => setF({ ...f, dry: v })} n={LEVEL} />
+        <Scale label="따가움·붉어짐" value={f.irritation ?? 0} onChange={(v) => setF({ ...f, irritation: v })} n={LEVEL} />
         <div>
           <label htmlFor="note" className="text-[14px] font-semibold">메모 <span className="font-normal text-mist">(선택)</span></label>
           <input id="note" value={f.note ?? ""} maxLength={120} onChange={(e) => setF({ ...f, note: e.target.value })} placeholder="예: 면도 후 따가움, 새 선크림 시작" className="mt-2 h-11 w-full rounded-xl border border-line px-4 text-[15px] outline-none placeholder:text-mist focus:border-lemon-deep" />
@@ -206,7 +207,7 @@ export default function LogPage() {
               {[...logs].reverse().slice(0, 30).map((l) => (
                 <li key={l.day} className="flex flex-wrap items-baseline justify-between gap-2 py-3">
                   <span className="font-semibold tabular-nums">{l.day}</span>
-                  <span className="text-steel">{OVERALL[l.overall]}, 트러블 {LEVEL[l.trouble]}, 번들 {LEVEL[l.oil]}, 건조 {LEVEL[l.dry]}{l.photo ? ", 사진" : ""}</span>
+                  <span className="text-steel">{OVERALL[l.overall]}, 트러블 {LEVEL[l.trouble]}, 번들 {LEVEL[l.oil]}, 건조 {LEVEL[l.dry]}{l.irritation ? `, 따가움 ${LEVEL[l.irritation]}` : ""}{l.photo ? ", 사진" : ""}</span>
                   {l.note && <span className="w-full text-[13px] text-mist">{l.note}</span>}
                 </li>
               ))}

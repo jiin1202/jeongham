@@ -51,7 +51,7 @@ export async function saveLog(log: SkinLog, photoFile?: Blob) {
   const ok = saveLogsLocal(logs);
   if (u && supabase) {
     await supabase.from("skin_logs").delete().eq("user_id", u).eq("day", log.day);
-    await supabase.from("skin_logs").insert({ user_id: u, day: log.day, overall: log.overall, trouble: log.trouble, oil: log.oil, dry: log.dry, note: log.note ?? null, photo_path: log.photo?.startsWith("data:") ? null : log.photo ?? null });
+    await supabase.from("skin_logs").insert({ user_id: u, day: log.day, overall: log.overall, trouble: log.trouble, oil: log.oil, dry: log.dry, irritation: log.irritation ?? null, note: log.note ?? null, photo_path: log.photo?.startsWith("data:") ? null : log.photo ?? null });
   }
   return ok;
 }
@@ -87,8 +87,8 @@ export async function pullFromCloud(u: string) {
   const { data: logs } = await supabase.from("skin_logs").select("*").eq("user_id", u).order("day");
   if (logs?.length) {
     const merged = new Map(loadLogs().map((l) => [l.day, l]));
-    logs.forEach((l: { day: string; overall: number; trouble: number; oil: number; dry: number; note: string | null; photo_path: string | null }) =>
-      merged.set(l.day, { day: l.day, overall: l.overall, trouble: l.trouble, oil: l.oil, dry: l.dry, note: l.note ?? undefined, photo: l.photo_path ?? merged.get(l.day)?.photo })
+    logs.forEach((l: { day: string; overall: number; trouble: number; oil: number; dry: number; irritation: number | null; note: string | null; photo_path: string | null }) =>
+      merged.set(l.day, { day: l.day, overall: l.overall, trouble: l.trouble, oil: l.oil, dry: l.dry, irritation: l.irritation ?? undefined, note: l.note ?? undefined, photo: l.photo_path ?? merged.get(l.day)?.photo })
     );
     saveLogsLocal(Array.from(merged.values()).sort((a, b) => a.day.localeCompare(b.day)));
   }
@@ -125,4 +125,15 @@ export async function fetchPeer(productId: string): Promise<PeerRow[] | null> {
   const { data, error } = await supabase.rpc("peer_results", { p_product: productId });
   if (error) return null;
   return (data ?? []).map((x: PeerRow) => ({ ...x, n: Number(x.n), avg_rating: Number(x.avg_rating) }));
+}
+
+/** 코치 에이전트 실행 기록(클라우드가 있을 때만). 반환: 실행 ID */
+export async function logCoachRun(mode: string, signals: unknown, steps: unknown, actions: unknown): Promise<number | undefined> {
+  if (!supabase) return undefined;
+  const { data, error } = await supabase.rpc("log_coach_run", { p_anon: anonId(), p_mode: mode, p_signals: signals, p_steps: steps, p_actions: actions });
+  return error ? undefined : (data as number);
+}
+export async function logCoachOutcome(id: number | undefined, outcome: unknown) {
+  if (!supabase || !id) return;
+  await supabase.rpc("coach_outcome", { p_anon: anonId(), p_id: id, p_outcome: outcome });
 }

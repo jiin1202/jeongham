@@ -7,6 +7,7 @@ import { loadSaved, loadFeedback, loadLogs, today, type Saved, type Feedback, ty
 import { clearSaved, saveSaved, saveFeedback, submitReview } from "@/lib/sync";
 import { daysToEmpty, specialCare } from "@/lib/engine";
 import { buildPlan } from "@/lib/plan";
+import Coach from "./Coach";
 import { byId, categoryLabel, oliveyoungUrl, buyUrl, type Product } from "@/lib/model";
 import { skinTypeLabel, skinTypeOf } from "@/lib/quiz";
 import { useAuth } from "@/lib/auth";
@@ -208,6 +209,8 @@ export default function MePage() {
         <PushSettings />
       </div>
 
+      <Coach s={s} logs={logs} fb={fb} today={t} update={update} />
+
       <section className="mt-14" aria-labelledby="plan-h">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -285,8 +288,9 @@ export default function MePage() {
       <h2 className="mt-14 text-[20px] font-bold tracking-[-0.02em]">다 쓰는 날</h2>
       <p className="mt-1 text-[14px] text-steel">용량을 하루 사용량 추정치로 나눠 계산했어요. 실제와 다를 수 있어요.</p>
       <ul className="mt-5 divide-y divide-line border-y border-line">
-        {items.map((p) => {
+        {items.map((p, i) => {
           const start = parse(s.start[p.id] ?? t);
+          const pausedUntil = s.paused?.[p.id] && s.paused[p.id] > t ? s.paused[p.id] : null;
           const total = daysToEmpty(p);
           const used = Math.max(0, Math.floor((parse(t).getTime() - start.getTime()) / DAY));
           const left = Math.max(0, total - used);
@@ -298,7 +302,10 @@ export default function MePage() {
                 <div className="flex min-w-0 items-center gap-3">
                   <ProductThumb p={p} size={56} />
                   <div className="min-w-0">
-                  <p className="text-[13px] font-semibold text-lemon-ink">{categoryLabel[p.category]}</p>
+                  <p className="text-[13px] font-semibold text-lemon-ink">
+                    {categoryLabel[p.category]}
+                    {pausedUntil && <span className="ml-2 rounded-full bg-amber-wash px-2 py-0.5 text-[12px] text-amber">{Number(pausedUntil.slice(5, 7))}월 {Number(pausedUntil.slice(8))}일까지 쉬는 중</span>}
+                  </p>
                   <Link href={`/p/${p.id}/`} className="block truncate text-[16px] font-bold hover:underline">
                     <span className="text-steel">{p.brand}</span> {p.name}
                   </Link>
@@ -324,7 +331,7 @@ export default function MePage() {
                 </div>
               )}
               {daysIn >= 21 && (
-                <div className="mt-4 rounded-xl bg-fog px-4 py-4">
+                <div id={i === 0 ? "review" : undefined} className="mt-4 scroll-mt-24 rounded-xl bg-fog px-4 py-4">
                   <p className="text-[14px] font-bold">{fb[p.id]?.sent ? "4주 후기를 남겼어요" : "4주 써본 결과를 남겨 주세요"}</p>
                   <p className="mt-0.5 text-[12.5px] text-steel">{skinTypeLabel[skinTypeOf(s.answers)]} 피부라는 것만 같이 집계돼요. 이름이나 연락처는 보내지 않아요.</p>
                   <div className="mt-3 flex flex-wrap items-center gap-3">

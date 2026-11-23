@@ -8,6 +8,8 @@ export type Saved = {
   checks: Record<string, { am?: boolean; pm?: boolean }>;
   /** 4주 플랜의 목표일(면접·발표 등). 없으면 루틴 시작일 기준 4주 */
   goal?: { date: string; label: string };
+  /** 코치 에이전트 제안으로 잠시 쉬는 제품: id → 다시 쓰는 날 */
+  paused?: Record<string, string>;
 };
 
 export type SkinLog = {
@@ -16,6 +18,8 @@ export type SkinLog = {
   trouble: number; // 0~3
   oil: number;
   dry: number;
+  /** 따가움·붉어짐 0~3 (코치 에이전트가 자극 신호로 사용) */
+  irritation?: number;
   note?: string;
   photo?: string; // 로컬: dataURL, 클라우드: storage 경로
 };
@@ -98,3 +102,13 @@ export const pushLocalEvent = (e: LocalEvent) => {
 
 export const lastDiagKey = () => read<string>(K.diag);
 export const setLastDiagKey = (k: string) => write(K.diag, k);
+
+// ── 정함 코치 에이전트 기록 ──
+export type CoachLogEntry = { at: string; mode: string; actions: string[]; outcome?: Record<string, "approved" | "declined" | "done"> };
+const CK = "jh.coach";
+export function loadCoach(): { last?: { day: string; result: unknown; runId?: number }; declined: string[]; log: CoachLogEntry[] } {
+  try { return { declined: [], log: [], ...JSON.parse(localStorage.getItem(CK) || "{}") }; } catch { return { declined: [], log: [] }; }
+}
+export function saveCoach(v: ReturnType<typeof loadCoach>) {
+  try { localStorage.setItem(CK, JSON.stringify({ ...v, log: v.log.slice(-60) })); } catch { /* 저장 공간 부족 시 무시 */ }
+}
