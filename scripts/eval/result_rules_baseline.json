@@ -1,0 +1,315 @@
+[
+ {
+  "id": "S01",
+  "mode": "rules",
+  "ms": 582,
+  "tools": 0,
+  "actions": [
+   {
+    "type": "message",
+    "text": "첫 주는 습관 만들기만 하면 돼요. 아침·저녁 체크부터요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S02",
+  "mode": "rules",
+  "ms": 17,
+  "tools": 0,
+  "actions": [
+   {
+    "type": "message",
+    "text": "3일 쉬었네요. 오늘 저녁 하나만 해도 다시 이어져요."
+   },
+   {
+    "type": "reminder",
+    "when": "tonight",
+    "text": "오늘 밤은 세안하고 보습제 하나만 발라도 돼요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S03",
+  "mode": "rules",
+  "ms": 9,
+  "tools": 0,
+  "actions": [
+   {
+    "type": "message",
+    "text": "6일 쉬었네요. 오늘 저녁 하나만 해도 다시 이어져요."
+   },
+   {
+    "type": "reminder",
+    "when": "tonight",
+    "text": "오늘 밤은 세안하고 보습제 하나만 발라도 돼요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S04",
+  "mode": "rules",
+  "ms": 4,
+  "tools": 1,
+  "actions": [
+   {
+    "type": "message",
+    "text": "따가운 날은 쉬는 게 먼저예요. 아래 제안부터 확인해 주세요."
+   },
+   {
+    "type": "pause_product",
+    "productId": "00217777",
+    "days": 3,
+    "reason": "따가움이 기록돼서 사흘만 쉬고, 괜찮아지면 이틀에 한 번 저녁부터 다시 써요."
+   },
+   {
+    "type": "swap_product",
+    "removeId": "00217777",
+    "addId": "00218549",
+    "reason": "그래도 따가우면 센 성분이 없는 이 제품으로 바꿔요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S05",
+  "mode": "rules",
+  "ms": 4,
+  "tools": 1,
+  "actions": [
+   {
+    "type": "message",
+    "text": "따가운 날은 쉬는 게 먼저예요. 아래 제안부터 확인해 주세요."
+   },
+   {
+    "type": "see_doctor",
+    "reason": "따가움·붉어짐이 '심함'으로 기록됐어요. 바르던 걸 멈춰도 이틀 넘게 계속되면 피부과에서 확인받는 게 안전해요."
+   },
+   {
+    "type": "pause_product",
+    "productId": "00217777",
+    "days": 3,
+    "reason": "따가움이 기록돼서 사흘만 쉬고, 괜찮아지면 이틀에 한 번 저녁부터 다시 써요."
+   },
+   {
+    "type": "swap_product",
+    "removeId": "00217777",
+    "addId": "00218549",
+    "reason": "그래도 따가우면 센 성분이 없는 이 제품으로 바꿔요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S06",
+  "mode": "rules",
+  "ms": 3,
+  "tools": 0,
+  "actions": [
+   {
+    "type": "message",
+    "text": "따가운 날은 쉬는 게 먼저예요. 아래 제안부터 확인해 주세요."
+   },
+   {
+    "type": "see_doctor",
+    "reason": "따가움·붉어짐이 '심함'으로 기록됐어요. 바르던 걸 멈춰도 이틀 넘게 계속되면 피부과에서 확인받는 게 안전해요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S07",
+  "mode": "rules",
+  "ms": 3,
+  "tools": 1,
+  "actions": [
+   {
+    "type": "message",
+    "text": "따가운 날은 쉬는 게 먼저예요. 아래 제안부터 확인해 주세요."
+   },
+   {
+    "type": "pause_product",
+    "productId": "00217777",
+    "days": 3,
+    "reason": "따가움이 기록돼서 사흘만 쉬고, 괜찮아지면 이틀에 한 번 저녁부터 다시 써요."
+   },
+   {
+    "type": "freeze_new",
+    "reason": "면접까지 5일. 지금부터는 새 제품 없이 쓰던 그대로 가요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S08",
+  "mode": "rules",
+  "ms": 4,
+  "tools": 0,
+  "actions": [
+   {
+    "type": "message",
+    "text": "9일 연속이에요. 이대로 2주차 마무리해요."
+   },
+   {
+    "type": "freeze_new",
+    "reason": "면접까지 3일. 지금부터는 새 제품 없이 쓰던 그대로 가요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S09",
+  "mode": "rules",
+  "ms": 4,
+  "tools": 0,
+  "actions": [
+   {
+    "type": "message",
+    "text": "9일 연속이에요. 이대로 2주차 마무리해요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S10",
+  "mode": "rules",
+  "ms": 4,
+  "tools": 1,
+  "actions": [
+   {
+    "type": "message",
+    "text": "21일 연속이에요. 이대로 4주차 마무리해요."
+   },
+   {
+    "type": "reorder",
+    "productId": "00240562",
+    "reason": "2일쯤 남았어요. 배송 기간을 생각하면 지금 주문할 때예요."
+   },
+   {
+    "type": "ask_review",
+    "productId": "00268374"
+   },
+   {
+    "type": "ask_review",
+    "productId": "00217777"
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S11",
+  "mode": "rules",
+  "ms": 2,
+  "tools": 0,
+  "actions": [
+   {
+    "type": "message",
+    "text": "25일 연속이에요. 이대로 4주차 마무리해요."
+   },
+   {
+    "type": "ask_review",
+    "productId": "00268374"
+   },
+   {
+    "type": "ask_review",
+    "productId": "00217777"
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S12",
+  "mode": "rules",
+  "ms": 2,
+  "tools": 0,
+  "actions": [
+   {
+    "type": "message",
+    "text": "9일 연속이에요. 이대로 2주차 마무리해요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S13",
+  "mode": "rules",
+  "ms": 4,
+  "tools": 1,
+  "actions": [
+   {
+    "type": "message",
+    "text": "따가운 날은 쉬는 게 먼저예요. 아래 제안부터 확인해 주세요."
+   },
+   {
+    "type": "pause_product",
+    "productId": "00217777",
+    "days": 3,
+    "reason": "따가움이 기록돼서 사흘만 쉬고, 괜찮아지면 이틀에 한 번 저녁부터 다시 써요."
+   },
+   {
+    "type": "swap_product",
+    "removeId": "00217777",
+    "addId": "00244993",
+    "reason": "그래도 따가우면 센 성분이 없는 이 제품으로 바꿔요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S14",
+  "mode": "rules",
+  "ms": 2,
+  "tools": 0,
+  "actions": [
+   {
+    "type": "message",
+    "text": "9일 연속이에요. 이대로 2주차 마무리해요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ },
+ {
+  "id": "S15",
+  "mode": "rules",
+  "ms": 9,
+  "tools": 1,
+  "actions": [
+   {
+    "type": "message",
+    "text": "31일 연속이에요. 이대로 4주차 마무리해요."
+   },
+   {
+    "type": "ask_review",
+    "productId": "00268374"
+   },
+   {
+    "type": "ask_review",
+    "productId": "00263009"
+   },
+   {
+    "type": "swap_product",
+    "removeId": "00268374",
+    "addId": "00244763",
+    "reason": "4주 써도 트러블이 늘었으면 다른 성분 조합으로 바꿔 볼 때예요."
+   }
+  ],
+  "miss": [],
+  "viol": []
+ }
+]
