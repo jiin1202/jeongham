@@ -11,6 +11,8 @@ import {
 export const dynamic = "force-dynamic";
 
 const MODEL = process.env.OPENAI_MODEL || "gpt-5.4-mini";
+// 수업에서 받은 키가 별도 중계 서버용이면 그 주소를 넣는다(기본: OpenAI)
+const BASE = (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "");
 const MAX_TURNS = 5;
 
 const SYSTEM = `너는 '정함 코치'라는 스킨케어 습관 코치 에이전트야. 사용자는 20대 남성이고, 정함이 정해준 루틴을 4주 동안 지속해 효과를 보는 게 목표야.
@@ -105,13 +107,16 @@ async function runLLM(s: Snapshot, key: string): Promise<CoachResult> {
   ];
 
   for (let turn = 0; turn < MAX_TURNS; turn++) {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await fetch(`${BASE}/chat/completions`, {
       method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
+      headers: { "content-type": "application/json", authorization: `Bearer ${key.trim()}` },
       body: JSON.stringify({ model: MODEL, messages, tools: TOOLS, tool_choice: turn === MAX_TURNS - 1 ? { type: "function", function: { name: "finish" } } : "auto" }),
       signal: AbortSignal.timeout(25000),
     });
-    if (!res.ok) throw new Error(`openai ${res.status}`);
+    if (!res.ok) {
+      const why = res.status === 401 ? "키가 거절됨" : res.status === 404 ? "모델 이름 또는 주소 확인" : res.status === 429 ? "한도 초과" : "";
+      throw new Error(`openai ${res.status} ${why}`.trim());
+    }
     const data = await res.json();
     const m: Msg = data.choices?.[0]?.message;
     if (!m) throw new Error("empty");
