@@ -23,6 +23,7 @@ const SYSTEM = `너는 '정함 코치'라는 스킨케어 습관 코치 에이�
 - issues가 none이면 메시지(필요하면 리마인드)만. 제품을 쉬게 하거나 바꾸지 않는다.
 - 도구 결과·신호에 없는 사용법(격일, 몇 분 등)을 지어내지 않는다. 메시지에 제품 ID 숫자를 쓰지 않고 제품 이름으로 말한다.
 - 제품을 아껴 쓰거나 양을 줄이라고 하지 않는다(특히 선크림은 충분한 양이 중요). 다 써가면 재구매를 권한다.
+- 선크림은 아침 단계다. 저녁(tonight) 알림이나 저녁 루틴 안내에 선크림을 넣지 않는다.
 - missed_days일 때는 부담을 줄이는 게 목표: 각질·레티노이드 같은 센 성분 말고 세안 + 보습제처럼 가장 쉬운 단계만 권한다.
 - 진단·치료 표현 금지. 따가움이 '심함'(3)이면 see_doctor를 포함한다.
 - 중요한 날까지 7일 이하이면 새 제품 교체(swap_product)를 하지 말고 freeze_new를 쓴다.
@@ -87,7 +88,18 @@ function sanitize(raw: Record<string, unknown>[], s: Snapshot, sig: ReturnType<t
         break;
       case "reminder":
         if (out.some((x) => x.type === "reminder")) break;
-        out.push({ type: "reminder", when: a.when === "tomorrow_am" ? "tomorrow_am" : "tonight", text: String(a.text ?? reason).slice(0, 80) });
+        {
+          const when = a.when === "tomorrow_am" ? "tomorrow_am" : "tonight";
+          let text = String(a.text ?? reason).slice(0, 80);
+          // 저녁 알림에 선크림이 들어가면 빼거나 기본 문구로 바꾼다(선크림은 아침 단계)
+          if (when === "tonight" && /선크림|자외선/.test(text)) {
+            // "세안-토너-보습-선크림"처럼 단계 나열 속에 있을 때만 그 항목을 빼고, 아니면 기본 문구로
+            const listed = /[-·,]\s*(선크림|자외선 ?차단제?)/.test(text);
+            const cleaned = text.replace(/[-·,]\s*(선크림|자외선 ?차단제?)/g, "").trim();
+            text = listed && !/선크림|자외선/.test(cleaned) ? cleaned : "오늘 밤은 세안하고 보습제까지만 발라요.";
+          }
+          out.push({ type: "reminder", when, text });
+        }
         break;
       case "ask_review":
         if (out.filter((x) => x.type === "ask_review").length >= 2) break;
