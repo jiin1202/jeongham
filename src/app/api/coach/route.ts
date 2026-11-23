@@ -20,6 +20,8 @@ const SYSTEM = `너는 '정함 코치'라는 스킨케어 습관 코치 에이�
 1) 주어진 신호(signals)와 상태를 읽고 지금 가장 중요한 문제 1~2개를 고른다.
 2) 필요하면 도구(get_product, find_alternative, search_products)로 사실을 확인한다. 제품 정보는 반드시 도구 결과로만 말한다.
 3) finish 도구로 행동을 확정한다. 행동은 메시지 1개 + 최대 3개.
+우선순위(높은 것부터): ① issues의 severe_irritation ② irritation_with_active ③ goal_soon ④ missed_days ⑤ running_out ⑥ needs_review ⑦ duplicate_category.
+제품을 바꾸거나 쉬게 할 때는 반드시 먼저 get_product나 find_alternative로 확인한다. 도구 결과에 없는 제품 ID는 쓰지 않는다.
 규칙:
 - 진단·치료 표현 금지. 따가움이 '심함'(3)이면 see_doctor를 포함한다.
 - 중요한 날까지 7일 이하이면 새 제품 교체(swap_product)를 하지 말고 freeze_new를 쓴다.
@@ -71,7 +73,7 @@ function sanitize(raw: Record<string, unknown>[], s: Snapshot, sig: ReturnType<t
         if (inRoutine.has(String(a.productId))) out.push({ type: "pause_product", productId: String(a.productId), days: Math.min(7, Math.max(1, Number(a.days) || 3)), reason });
         break;
       case "swap_product":
-        if (inRoutine.has(String(a.removeId)) && byId.get(String(a.addId))?.category === byId.get(String(a.removeId))?.category && !(sig.goalDaysLeft !== null && sig.goalDaysLeft >= 0 && sig.goalDaysLeft <= 7))
+        if (inRoutine.has(String(a.removeId)) && !inRoutine.has(String(a.addId)) && byId.get(String(a.addId))?.category === byId.get(String(a.removeId))?.category && !(sig.goalDaysLeft !== null && sig.goalDaysLeft >= 0 && sig.goalDaysLeft <= 7))
           out.push({ type: "swap_product", removeId: String(a.removeId), addId: String(a.addId), reason });
         break;
       case "reorder":
@@ -100,12 +102,24 @@ function sanitize(raw: Record<string, unknown>[], s: Snapshot, sig: ReturnType<t
 async function runLLM(s: Snapshot, key: string): Promise<CoachResult> {
   const sig = computeSignals(s);
   const routine = s.routine.map((r) => ({ id: r.id, start: r.start, ...toolGetProduct(r.id) }));
+  // 신호를 사람이 읽는 '문제 목록'으로 정리해 LLM이 놓치지 않게 한다(판단과 행동 선택은 LLM이 한다)
+  const issues: string[] = [];
+  if (sig.irritation && sig.irritation.level >= 3) issues.push(`severe_irritation: ${sig.irritation.day} 따가움 심함`);
+  if (sig.irritation && sig.activeIds.length) issues.push(`irritation_with_active: 따가움 ${sig.irritation.level}/3, 센 성분 제품 ${sig.activeIds.join(",")}`);
+  if (sig.goalDaysLeft !== null && sig.goalDaysLeft >= 0 && sig.goalDaysLeft <= 7) issues.push(`goal_soon: ${s.goal?.label} D-${sig.goalDaysLeft}`);
+  if (sig.missedDays >= 2) issues.push(`missed_days: ${sig.missedDays}일 연속 체크 없음`);
+  sig.runningOut.forEach((r) => issues.push(`running_out: ${r.id} 약 ${Math.max(0, r.daysLeft)}일 남음`));
+  if (sig.needsReview.length) issues.push(`needs_review: ${sig.needsReview.join(",")}`);
+  const cats = new Map<string, string[]>();
+  routine.forEach((r) => { const c = String((r as { category?: string }).category ?? ""); cats.set(c, [...(cats.get(c) ?? []), r.id]); });
+  cats.forEach((v, c) => { if (v.length > 1 && c) issues.push(`duplicate_category: ${c} ${v.join(",")}`); });
   const steps: Step[] = [{ kind: "observe", title: `${sig.day + 1}일째, ${sig.week}주차`, detail: `최근 7일 체크율 ${Math.round(sig.checkRate7 * 100)}%, 연속 ${sig.streak}일, 빠진 날 ${sig.missedDays}일` }];
   const messages: Msg[] = [
     { role: "system", content: SYSTEM },
-    { role: "user", content: JSON.stringify({ today: s.today, answers: s.answers, signals: sig, routine, recentLogs: s.logs, goal: s.goal ?? null, declined: s.declined }) },
+    { role: "user", content: JSON.stringify({ today: s.today, issues: issues.length ? issues : ["none: 특별한 문제 없음, 짧게 독려"], answers: s.answers, signals: sig, routine, recentLogs: s.logs, goal: s.goal ?? null, declined: s.declined }) },
   ];
 
+  let usedTool = false;
   for (let turn = 0; turn < MAX_TURNS; turn++) {
     const res = await fetch(`${BASE}/chat/completions`, {
       method: "POST",
@@ -129,12 +143,18 @@ async function runLLM(s: Snapshot, key: string): Promise<CoachResult> {
     for (const call of m.tool_calls) {
       let args: Record<string, unknown> = {};
       try { args = JSON.parse(call.function.arguments || "{}"); } catch { /* 빈 인자로 처리 */ }
+      if (call.function.name === "finish" && !usedTool && issues.some((i) => /irritation|running_out|duplicate/.test(i))) {
+        usedTool = true;
+        messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify({ error: "제품을 다루는 문제가 있어요. 먼저 get_product 또는 find_alternative로 확인한 뒤 finish 하세요." }) });
+        continue;
+      }
       if (call.function.name === "finish") {
         const actions = sanitize((args.actions as Record<string, unknown>[]) ?? [], s, sig);
         const text = String(args.message ?? "").slice(0, 120) || "오늘도 체크 하나만 남겨요.";
         steps.push({ kind: "act", title: `행동 ${actions.length + 1}개 결정` });
         return { mode: "llm", model: MODEL, signals: sig, steps, actions: [{ type: "message", text }, ...actions] };
       }
+      usedTool = true;
       let result: unknown;
       if (call.function.name === "get_product") result = toolGetProduct(String(args.id));
       else if (call.function.name === "find_alternative") result = toolFindAlternative(s, String(args.id), (args.reason as "irritation") ?? "irritation");
