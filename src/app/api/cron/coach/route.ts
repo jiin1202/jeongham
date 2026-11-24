@@ -67,11 +67,11 @@ export async function POST(req: Request) {
   const e = env();
   if (!e) return NextResponse.json({ error: "알림 키나 DB 설정이 아직 없어요." }, { status: 500 });
   const token = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
-  if (!token) return NextResponse.json({ error: "로그인이 필요해요." }, { status: 401 });
+  if (!token) return NextResponse.json({ error: "로그인 정보가 요청에 없어요. 새로고침 후 다시 눌러 주세요." }, { status: 401 });
   const db = createClient(e.url, e.key, { auth: { persistSession: false } });
-  const { data: u } = await db.auth.getUser(token);
+  const { data: u, error: authErr } = await db.auth.getUser(token);
   const email = u.user?.email;
-  if (!u.user || !email) return NextResponse.json({ error: "로그인이 필요해요." }, { status: 401 });
+  if (!u.user || !email) return NextResponse.json({ error: `서버에서 로그인 확인에 실패했어요. (${authErr?.message ?? "사용자 없음"})` }, { status: 401 });
   const { data: adm } = await db.from("admins").select("email").eq("email", email).maybeSingle();
   if (!adm) return NextResponse.json({ error: "운영자 계정만 시험 실행할 수 있어요." }, { status: 403 });
   let body: { dry?: boolean } = {};

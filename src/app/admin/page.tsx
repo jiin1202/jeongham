@@ -64,7 +64,7 @@ function AutoRunTest() {
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
-      if (!token) { setOut("로그인이 필요해요."); return; }
+      if (!token) { setOut("이 브라우저에 로그인 세션이 없어요. 로그아웃 후 다시 로그인해 주세요."); return; }
       const r = await fetch("/api/cron/coach/", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${token}` }, body: JSON.stringify({ dry }) });
       const j = await r.json();
       if (!r.ok) { setOut(j.error ?? "실행하지 못했어요."); return; }
