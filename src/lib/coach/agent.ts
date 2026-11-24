@@ -150,6 +150,8 @@ export async function runLLM(s: Snapshot, key: string): Promise<CoachResult> {
   ];
 
   let usedTool = false;
+  // 비용 측정용: 이번 판단에 쓴 호출 수와 토큰
+  const usage = { calls: 0, input: 0, output: 0 };
   for (let turn = 0; turn < MAX_TURNS; turn++) {
     const res = await fetch(`${BASE}/chat/completions`, {
       method: "POST",
@@ -162,6 +164,9 @@ export async function runLLM(s: Snapshot, key: string): Promise<CoachResult> {
       throw new Error(`openai ${res.status} ${why}`.trim());
     }
     const data = await res.json();
+    usage.calls++;
+    usage.input += Number(data.usage?.prompt_tokens ?? 0);
+    usage.output += Number(data.usage?.completion_tokens ?? 0);
     const m: Msg = data.choices?.[0]?.message;
     if (!m) throw new Error("empty");
     messages.push(m);
@@ -184,7 +189,7 @@ export async function runLLM(s: Snapshot, key: string): Promise<CoachResult> {
         if (dropped !== 0) steps.push({ kind: "think", title: dropped > 0 ? `정책 검사: 근거 없는 행동 ${dropped}개 제외` : `정책 검사: 빠진 필수 행동 ${-dropped}개 보완` });
         const text = (String(args.message ?? "").replace(/\b\d{8}\b/g, (m) => byId.get(m)?.name ?? "그 제품").slice(0, 120)) || "오늘도 체크 하나만 남겨요.";
         steps.push({ kind: "act", title: `행동 ${actions.length + 1}개 결정` });
-        return { mode: "llm", model: MODEL, signals: sig, steps, actions: [{ type: "message", text }, ...actions] };
+        return { mode: "llm", model: MODEL, signals: sig, steps, actions: [{ type: "message", text }, ...actions], usage };
       }
       usedTool = true;
       let result: unknown;

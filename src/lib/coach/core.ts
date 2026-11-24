@@ -45,7 +45,7 @@ export type Action =
   | { type: "see_doctor"; reason: string };
 
 export type Step = { kind: "observe" | "think" | "tool" | "act"; title: string; detail?: string };
-export type CoachResult = { mode: "llm" | "rules"; model?: string; signals: Signals; steps: Step[]; actions: Action[] };
+export type CoachResult = { mode: "llm" | "rules"; model?: string; signals: Signals; steps: Step[]; actions: Action[]; usage?: { calls: number; input: number; output: number } };
 
 const DAY = 86400000;
 const t0 = (s: string) => new Date(s + "T00:00:00").getTime();
