@@ -41,17 +41,47 @@ async function snapshotOf(db: SupabaseClient, r: RoutineRow, today: string): Pro
   };
 }
 
-export async function GET(req: Request) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+type Opts = { dry: boolean; only?: string; force?: boolean };
+
+function env() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const priv = process.env.VAPID_PRIVATE_KEY;
-  if (!url || !key || !pub || !priv) return NextResponse.json({ error: "env missing" }, { status: 500 });
+  return url && key && pub && priv ? { url, key, pub, priv } : null;
+}
+
+// 예약 실행(GitHub Actions): CRON_SECRET으로 인증, 구독자 전체 대상
+export async function GET(req: Request) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const e = env();
+  if (!e) return NextResponse.json({ error: "env missing" }, { status: 500 });
   // ?dry=1 이면 판단까지만 하고 알림·기록은 하지 않는다(테스트용)
   const dry = new URL(req.url).searchParams.get("dry") === "1";
+  return NextResponse.json(await runAuto(e, { dry }));
+}
 
+// 운영자 시험 실행(/admin 버튼): 로그인한 운영자 본인에게만, 이미 보낸 이유도 다시 판단(force)
+export async function POST(req: Request) {
+  const e = env();
+  if (!e) return NextResponse.json({ error: "알림 키나 DB 설정이 아직 없어요." }, { status: 500 });
+  const token = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+  if (!token) return NextResponse.json({ error: "로그인이 필요해요." }, { status: 401 });
+  const db = createClient(e.url, e.key, { auth: { persistSession: false } });
+  const { data: u } = await db.auth.getUser(token);
+  const email = u.user?.email;
+  if (!u.user || !email) return NextResponse.json({ error: "로그인이 필요해요." }, { status: 401 });
+  const { data: adm } = await db.from("admins").select("email").eq("email", email).maybeSingle();
+  if (!adm) return NextResponse.json({ error: "운영자 계정만 시험 실행할 수 있어요." }, { status: 403 });
+  let body: { dry?: boolean } = {};
+  try { body = await req.json(); } catch { /* 기본값 */ }
+  return NextResponse.json(await runAuto(e, { dry: body.dry !== false, only: u.user.id, force: true }));
+}
+
+async function runAuto(e: NonNullable<ReturnType<typeof env>>, opts: Opts) {
+  const { dry } = opts;
+  const { url, key, pub, priv } = e;
   webpush.setVapidDetails(process.env.VAPID_SUBJECT ?? "mailto:hello@jeongham.app", pub, priv);
   const db = createClient(url, key, { auth: { persistSession: false } });
   const today = kstDay();
@@ -60,8 +90,8 @@ export async function GET(req: Request) {
   const { data: subs } = await db.from("push_subs").select("endpoint,user_id,keys");
   const byUser = new Map<string, Sub[]>();
   for (const s of (subs ?? []) as Sub[]) byUser.set(s.user_id, [...(byUser.get(s.user_id) ?? []), s]);
-  const uids = Array.from(byUser.keys()).slice(0, MAX_USERS);
-  if (!uids.length) return NextResponse.json({ today, users: 0 });
+  const uids = opts.only ? (byUser.has(opts.only) ? [opts.only] : []) : Array.from(byUser.keys()).slice(0, MAX_USERS);
+  if (!uids.length) return { today, users: 0, dry, note: opts.only ? "이 계정은 알림이 꺼져 있어요. /me에서 알림을 먼저 켜 주세요." : "알림 구독자가 없어요." };
 
   const [{ data: routines }, { data: past }] = await Promise.all([
     db.from("routines").select("user_id,answers,ids,start,goal").in("user_id", uids),
@@ -82,11 +112,11 @@ export async function GET(req: Request) {
   const gone: string[] = [];
 
   for (const r of (routines ?? []) as RoutineRow[]) {
-    if (!r.ids?.length || sentToday.has(r.user_id)) { report.skipped++; continue; }
+    if (!r.ids?.length || (!opts.force && sentToday.has(r.user_id))) { report.skipped++; continue; }
     const snap = await snapshotOf(db, r, today);
     const sig = computeSignals(snap);
-    const fresh = pickNew(pushTriggers(snap, sig), sentKeys.get(r.user_id) ?? new Set());
-    if (!fresh.length) { report.skipped++; continue; } // 연락할 이유 없음 → GPT 호출 안 함
+    const fresh = pickNew(pushTriggers(snap, sig), opts.force ? new Set() : sentKeys.get(r.user_id) ?? new Set());
+    if (!fresh.length) { report.skipped++; if (opts.only) report.samples.push({ triggers: [], message: "연락할 이유가 없어서 GPT를 부르지 않았어요." }); continue; } // 연락할 이유 없음 → GPT 호출 안 함
 
     const result = await decide(snap);
     report.judged++;
@@ -119,5 +149,5 @@ export async function GET(req: Request) {
     await db.from("push_subs").delete().in("endpoint", gone);
     report.removed = gone.length;
   }
-  return NextResponse.json(report);
+  return report;
 }

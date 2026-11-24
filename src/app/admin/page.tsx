@@ -53,6 +53,45 @@ function Dist({ title, data, label }: { title: string; data: Record<string, numb
   );
 }
 
+// 코치 자율 실행 시험: 매일 저녁 크론과 같은 코드를 운영자 본인에게만 지금 실행
+function AutoRunTest() {
+  const [busy, setBusy] = useState<"" | "dry" | "send">("");
+  const [out, setOut] = useState<string>("");
+  const run = async (dry: boolean) => {
+    if (!supabase) return;
+    setBusy(dry ? "dry" : "send");
+    setOut("");
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) { setOut("로그인이 필요해요."); return; }
+      const r = await fetch("/api/cron/coach/", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${token}` }, body: JSON.stringify({ dry }) });
+      const j = await r.json();
+      if (!r.ok) { setOut(j.error ?? "실행하지 못했어요."); return; }
+      if (j.note) { setOut(j.note); return; }
+      const sm = (j.samples ?? [])[0] as { triggers?: string[]; message?: string; actions?: string[] } | undefined;
+      if (!sm) { setOut("판단할 루틴이 없어요. 루틴을 저장했는지 확인해 주세요."); return; }
+      const why = sm.triggers?.length ? `연락할 이유: ${sm.triggers.join(", ")}` : "연락할 이유 없음";
+      setOut(`${why}\n알림 문구: ${sm.message ?? "-"}${dry ? "\n(판단만 했어요. 알림은 보내지 않았어요.)" : j.pushed ? "\n알림을 보냈어요. 휴대폰이나 브라우저 알림을 확인해 주세요." : "\n알림을 보내지 못했어요. 알림이 켜져 있는지 확인해 주세요."}`);
+    } catch {
+      setOut("네트워크 오류로 실행하지 못했어요.");
+    } finally {
+      setBusy("");
+    }
+  };
+  return (
+    <section className="mt-10 rounded-2xl border border-line p-5">
+      <h2 className="text-[17px] font-bold tracking-[-0.02em]">코치 자율 실행 시험</h2>
+      <p className="mt-1 text-[13.5px] text-steel">매일 저녁 8시에 도는 것과 같은 판단을 지금 내 계정에만 돌려봐요. 이미 보낸 이유도 다시 판단해요.</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button type="button" disabled={!!busy} onClick={() => run(true)} className="rounded-full border border-line px-4 py-2 text-[14px] font-semibold disabled:opacity-50">{busy === "dry" ? "판단하는 중…" : "판단만 해보기"}</button>
+        <button type="button" disabled={!!busy} onClick={() => run(false)} className="rounded-full bg-ink px-4 py-2 text-[14px] font-semibold text-white disabled:opacity-50">{busy === "send" ? "보내는 중…" : "나에게 알림 보내기"}</button>
+      </div>
+      {out && <p className="mt-4 whitespace-pre-line rounded-xl bg-fog p-4 text-[13.5px]">{out}</p>}
+    </section>
+  );
+}
+
 function localStats(): Stats {
   const ev = loadLocalEvents();
   const events: Record<string, number> = {};
@@ -145,6 +184,8 @@ export default function AdminPage() {
           </div>
         ))}
       </dl>
+
+      {!local && <AutoRunTest />}
 
       <section className="mt-10">
         <h2 className="text-[19px] font-bold tracking-[-0.02em]">이용 흐름</h2>
