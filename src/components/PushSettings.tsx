@@ -16,13 +16,21 @@ function b64ToBytes(s: string) {
 
 type State = "unsupported" | "off" | "on" | "denied" | "busy";
 
-export default function PushSettings() {
+type Props = { amHour?: number; pmHour?: number; embedded?: boolean };
+
+/** embedded: 알림 설정 패널 안에서 시간은 바깥에서 받아 쓰고, 여닫기 버튼 없이 보여준다 */
+export default function PushSettings({ amHour, pmHour, embedded }: Props = {}) {
   const { user } = useAuth();
   const [state, setState] = useState<State>("busy");
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!!embedded);
   const [am, setAm] = useState(8);
   const [pm, setPm] = useState(22);
   const [msg, setMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (amHour !== undefined) setAm(amHour);
+    if (pmHour !== undefined) setPm(pmHour);
+  }, [amHour, pmHour]);
 
   const supported = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 
@@ -102,11 +110,13 @@ export default function PushSettings() {
 
   return (
     <div className="w-full">
-      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="btn-ghost">
-        {state === "on" ? "알림 켜짐" : "아침·저녁 알림 받기"}
-      </button>
+      {!embedded && (
+        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="btn-ghost">
+          {state === "on" ? "알림 켜짐" : "아침·저녁 알림 받기"}
+        </button>
+      )}
       {open && (
-        <div className="mt-3 rounded-2xl border border-line p-5 text-[14px]">
+        <div className={embedded ? "text-[14px]" : "mt-3 rounded-2xl border border-line p-5 text-[14px]"}>
           {!user ? (
             <p className="text-steel">
               알림은 로그인해야 받을 수 있어요. 어느 기기로 보낼지 알아야 해서요.{" "}
@@ -116,8 +126,8 @@ export default function PushSettings() {
             <p className="text-steel">브라우저 설정에서 이 사이트의 알림이 막혀 있어요. 사이트 설정에서 알림을 허용한 뒤 다시 눌러주세요.</p>
           ) : (
             <>
-              <p className="text-steel">체크를 안 한 날에만 보내요. 그리고 저녁에 코치가 기록을 보고 며칠 빠졌거나, 따가웠거나, 제품이 다 떨어져 가면 먼저 한 번 연락해요. 하루 한 번을 넘기지 않아요. 아이폰은 Safari에서 “홈 화면에 추가”한 뒤 켜야 와요.</p>
-              <div className="mt-4 flex flex-wrap items-center gap-3">
+              <p className="text-steel">{embedded && "위에서 고른 시간(정각 기준)에 보내요. "}체크를 안 한 날에만 보내요. 그리고 저녁에 코치가 기록을 보고 며칠 빠졌거나, 따가웠거나, 제품이 다 떨어져 가면 먼저 한 번 연락해요. 하루 한 번을 넘기지 않아요. 아이폰은 Safari에서 “홈 화면에 추가”한 뒤 켜야 와요.</p>
+              {!embedded && <div className="mt-4 flex flex-wrap items-center gap-3">
                 <label className="flex items-center gap-2">
                   아침
                   <select value={am} onChange={(e) => setAm(+e.target.value)} className="rounded-lg border border-line px-2 py-1.5">
@@ -130,7 +140,7 @@ export default function PushSettings() {
                     {hours.filter((h) => h >= 18).map((h) => <option key={h} value={h}>{h}시</option>)}
                   </select>
                 </label>
-              </div>
+              </div>}
               <div className="mt-4 flex flex-wrap gap-2">
                 {state === "on" ? (
                   <>

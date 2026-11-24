@@ -16,7 +16,9 @@ export const MAX_QUESTIONS = 3;
 export type ChatTurn = { role: "user" | "agent"; text: string };
 export type CounselContext = { answers?: Answers | null; mineIds?: string[]; routineIds?: string[] };
 export type Step = { kind: "think" | "tool" | "policy"; title: string; detail?: string };
-export type AnswerProduct = { id: string; brand: string; name: string; category: string; price: number; why: string; thumb: { id: string; brand: string; name: string; fullName: string; category: Category; image?: string } };
+export type AnswerProduct = { id: string; brand: string; name: string; category: string; price: number; why: string;
+  /** 저장한 루틴 기준: 이미 씀 / 같은 종류를 바꿈 / 새로 더함 */
+  fit?: { kind: "have" | "replace" | "add"; replaces?: { id: string; name: string } }; thumb: { id: string; brand: string; name: string; fullName: string; category: Category; image?: string } };
 export type CounselAnswer = {
   summary: string;
   causes: string[];
@@ -27,9 +29,11 @@ export type CounselAnswer = {
 };
 export type CounselResult =
   | { type: "question"; question: string; options: string[]; steps: Step[]; usage: Usage }
-  | { type: "answer"; answer: CounselAnswer; steps: Step[]; usage: Usage }
+  | { type: "answer"; answer: CounselAnswer; steps: Step[]; usage: Usage; meta: CounselMeta }
   | { type: "error"; message: string };
 type Usage = { calls: number; input: number; output: number };
+/** 익명 통계용. 대화 내용·사용자 식별 정보는 담지 않는다 */
+export type CounselMeta = { questions: number; tools: number; concerns: string[]; redFlag: boolean };
 
 const SYSTEM = `너는 '정함 고민 상담' 에이전트야. 상대는 스킨케어를 잘 모르는 20대 남성이야.
 일하는 순서:
@@ -150,6 +154,8 @@ export async function counsel(history: ChatTurn[], ctx: CounselContext, key: str
   const steps: Step[] = [];
   const usage: Usage = { calls: 0, input: 0, output: 0 };
   const seen = new Set<string>();
+  const concerns = new Set<string>();
+  let toolCalls = 0;
   const mine = (ctx.mineIds ?? []).map((id) => byId.get(id)).filter(Boolean).map((p) => ({ id: p!.id, name: `${p!.brand} ${p!.name}`, category: categoryLabel[p!.category] }));
   const routine = (ctx.routineIds ?? []).map((id) => byId.get(id)).filter(Boolean).map((p) => ({ id: p!.id, name: `${p!.brand} ${p!.name}`, category: categoryLabel[p!.category] }));
   const a = ctx.answers;
@@ -199,9 +205,20 @@ export async function counsel(history: ChatTurn[], ctx: CounselContext, key: str
         continue;
       }
       if (name === "answer") {
-        return { type: "answer", answer: sanitizeAnswer(args, userText, seen, steps), steps, usage };
+        const answer = sanitizeAnswer(args, userText, seen, steps);
+        const routineIds = ctx.routineIds ?? [];
+        if (routineIds.length) {
+          for (const ap of answer.products) {
+            const cat = byId.get(ap.id)?.category;
+            const same = routineIds.map((id) => byId.get(id)).find((r) => r && r.category === cat);
+            ap.fit = routineIds.includes(ap.id) ? { kind: "have" } : same ? { kind: "replace", replaces: { id: same.id, name: `${same.brand} ${same.name}` } } : { kind: "add" };
+          }
+        }
+        return { type: "answer", answer, steps, usage, meta: { questions: asked, tools: toolCalls, concerns: Array.from(concerns), redFlag: flagged } };
       }
       let result: unknown;
+      toolCalls++;
+      if (typeof args.concern === "string" && args.concern in CONCERN_PLAN) concerns.add(args.concern);
       if (name === "search_products") result = searchProducts(ctx, args as never);
       else if (name === "get_product") result = getProduct(String(args.id));
       else if (name === "concern_plan") result = CONCERN_PLAN[String(args.concern) as Concern] ?? { error: "없는 고민" };

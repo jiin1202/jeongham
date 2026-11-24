@@ -112,3 +112,16 @@ export function loadCoach(): { last?: { day: string; result: unknown; runId?: nu
 export function saveCoach(v: ReturnType<typeof loadCoach>) {
   try { localStorage.setItem(CK, JSON.stringify({ ...v, log: v.log.slice(-60) })); } catch { /* 저장 공간 부족 시 무시 */ }
 }
+
+// ── 고민 상담에서 '내 루틴에 반영'한 할 일(이 기기에만 저장) ──
+export type CounselNote = { at: string; summary: string; doNow: string[]; watch: string; doctor?: string };
+const NK = "jh.counselNote";
+export const loadCounselNote = () => read<CounselNote>(NK);
+export const saveCounselNote = (n: CounselNote | null) => {
+  if (n) return write(NK, n);
+  try {
+    localStorage.removeItem(NK);
+    window.dispatchEvent(new Event("jh-store"));
+  } catch {}
+  return true;
+};

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
 import FitLine from "@/components/FitLine";
-import { loadSaved, loadFeedback, loadLogs, today, type Saved, type Feedback, type SkinLog, type Review } from "@/lib/store";
+import { loadSaved, loadFeedback, loadLogs, loadCounselNote, saveCounselNote, today, type CounselNote, type Saved, type Feedback, type SkinLog, type Review } from "@/lib/store";
 import { clearSaved, saveSaved, saveFeedback, submitReview } from "@/lib/sync";
 import { daysToEmpty, specialCare } from "@/lib/engine";
 import { buildPlan } from "@/lib/plan";
@@ -13,7 +13,7 @@ import { skinTypeLabel, skinTypeOf } from "@/lib/quiz";
 import { useAuth } from "@/lib/auth";
 import { cloudEnabled } from "@/lib/supabase";
 import { track } from "@/lib/track";
-import PushSettings from "@/components/PushSettings";
+import Reminders from "@/components/Reminders";
 
 const DAY = 86400000;
 const parse = (s: string) => new Date(s + "T00:00:00");
@@ -60,12 +60,14 @@ export default function MePage() {
   const [sentMsg, setSentMsg] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [note, setNote] = useState<CounselNote | null>(null);
 
   useEffect(() => {
     const load = () => {
       setS(loadSaved());
       setFb(loadFeedback());
       setLogs(loadLogs());
+      setNote(loadCounselNote());
     };
     load();
     setReady(true);
@@ -206,8 +208,24 @@ export default function MePage() {
 
       <div className="mt-6 flex flex-wrap gap-2">
         <Link href="/log/" className="btn-ghost">오늘 피부 기록하기</Link>
-        <PushSettings />
+        <Reminders items={items} startKey={Object.values(s.start).sort()[0] ?? t} today={t} />
       </div>
+
+      {note && (
+        <section className="mt-8 rounded-2xl border border-line p-5" aria-labelledby="note-h">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 id="note-h" className="text-[17px] font-bold">상담에서 정한 할 일</h2>
+            <span className="text-[12.5px] text-mist">{note.at.slice(5).replace("-", "월 ")}일 상담</span>
+          </div>
+          {note.doctor && <p className="mt-2 rounded-xl bg-rose-wash px-4 py-2.5 text-[14px] text-rose">진료가 먼저예요: {note.doctor}</p>}
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-[14px] leading-6">{note.doNow.map((x) => <li key={x}>{x}</li>)}</ol>
+          <p className="mt-2 text-[13.5px] text-steel">{note.watch}</p>
+          <div className="mt-3 flex gap-3 text-[13px] font-semibold">
+            <Link href="/counsel/" className="underline underline-offset-4">다시 상담하기</Link>
+            <button type="button" onClick={() => { saveCounselNote(null); setNote(null); }} className="text-steel hover:text-ink">다 했어요, 지우기</button>
+          </div>
+        </section>
+      )}
 
       <Coach s={s} logs={logs} fb={fb} today={t} update={update} />
 

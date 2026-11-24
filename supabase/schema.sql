@@ -233,3 +233,38 @@ grant select, insert, update, delete on profiles, routines, checks, skin_logs, f
 grant insert on diagnoses, events to anon, authenticated;
 grant all on all tables in schema public to service_role;
 grant usage on all sequences in schema public to anon, authenticated, service_role;
+
+-- 고민 상담 익명 통계: 대화 내용·사용자 ID 없이 숫자와 고민 분류만
+create table if not exists counsel_stats (
+  id bigint generated always as identity primary key,
+  kind text not null check (kind in ('start','question','answer')),
+  questions int, tool_calls int, concerns text[], red_flag boolean, doctor_needed boolean,
+  product_count int, policy_fixes int, latency_ms int, calls int, tokens_in int, tokens_out int,
+  created_at timestamptz default now()
+);
+alter table counsel_stats enable row level security;
+revoke all on counsel_stats from anon, authenticated;
+grant all on counsel_stats to service_role;
+
+create or replace function counsel_stats_summary()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare r jsonb;
+begin
+  if not exists (select 1 from admins where email = auth.jwt() ->> 'email') then
+    raise exception 'not admin';
+  end if;
+  select jsonb_build_object(
+    'starts', (select count(*) from counsel_stats where kind = 'start'),
+    'answers', (select count(*) from counsel_stats where kind = 'answer'),
+    'avgQuestions', (select round(avg(questions)::numeric, 2) from counsel_stats where kind = 'answer'),
+    'doctorRate', (select round(avg(doctor_needed::int)::numeric, 3) from counsel_stats where kind = 'answer'),
+    'productRate', (select round(avg((product_count > 0)::int)::numeric, 3) from counsel_stats where kind = 'answer'),
+    'policyRate', (select round(avg((policy_fixes > 0)::int)::numeric, 3) from counsel_stats where kind = 'answer'),
+    'p50ms', (select percentile_cont(0.5) within group (order by latency_ms) from counsel_stats where kind = 'answer'),
+    'tokensIn', (select coalesce(sum(tokens_in), 0) from counsel_stats),
+    'tokensOut', (select coalesce(sum(tokens_out), 0) from counsel_stats),
+    'concerns', (select coalesce(jsonb_object_agg(c, n), '{}') from (select unnest(concerns) c, count(*) n from counsel_stats where kind = 'answer' group by 1) t)
+  ) into r;
+  return r;
+end $$;
+grant execute on function counsel_stats_summary() to authenticated;

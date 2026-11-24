@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
-import { loadAnswers, loadMine, loadSaved } from "@/lib/store";
+import { loadAnswers, loadMine, loadSaved, saveCounselNote, today } from "@/lib/store";
+import { saveSaved } from "@/lib/sync";
 import { track } from "@/lib/track";
-import type { ChatTurn, CounselAnswer, Step } from "@/lib/counsel/types";
+import type { AnswerProduct, ChatTurn, CounselAnswer, Step } from "@/lib/counsel/types";
 
 const STARTERS = [
   "턱에 트러블이 계속 올라와요",
@@ -172,6 +173,7 @@ function AnswerCard({ a, steps }: { a: CounselAnswer; steps: Step[] }) {
         </section>
       )}
       <p className="mt-4 text-[14px] leading-6"><span className="font-bold">언제 다시 볼까요</span> <span className="text-steel">{a.watch}</span></p>
+      <ApplyToRoutine a={a} />
       {steps.length > 0 && (
         <div className="mt-4 border-t border-line pt-3">
           <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="text-[13px] font-semibold text-steel hover:text-ink">상담 에이전트가 확인한 과정 {open ? "닫기" : "보기"}</button>
@@ -183,5 +185,88 @@ function AnswerCard({ a, steps }: { a: CounselAnswer; steps: Step[] }) {
         </div>
       )}
     </article>
+  );
+}
+
+// 상담 결과를 저장한 루틴에 반영: 고른 제품은 같은 종류를 바꾸거나 더하고, 할 일은 '내 루틴'에 띄운다
+function ApplyToRoutine({ a }: { a: CounselAnswer }) {
+  const [has, setHas] = useState<boolean | null>(null);
+  const [pick, setPick] = useState<Record<string, boolean>>({});
+  const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const s = loadSaved();
+    setHas(!!s?.ids?.length);
+    // 진료가 먼저인 경우엔 새 제품을 기본으로 고르지 않는다
+    setPick(Object.fromEntries(a.products.filter((p) => p.fit?.kind !== "have").map((p) => [p.id, !a.doctor.needed])));
+  }, [a]);
+
+  if (has === null) return null;
+  if (!has)
+    return (
+      <div className="mt-5 rounded-xl bg-fog px-4 py-3 text-[14px]">
+        <p className="text-steel">저장한 루틴이 아직 없어요. 진단하고 루틴을 만들면 상담 내용을 바로 반영할 수 있어요.</p>
+        <Link href="/check/" className="mt-2 inline-block font-semibold underline underline-offset-4">진단하고 루틴 만들기</Link>
+      </div>
+    );
+
+  const changes = a.products.filter((p) => p.fit && p.fit.kind !== "have");
+  const line = (p: AnswerProduct) => (p.fit?.kind === "replace" ? `${p.fit.replaces?.name} → ${p.brand} ${p.name}` : `${p.brand} ${p.name} 더하기`);
+
+  const apply = async () => {
+    const s = loadSaved();
+    if (!s) return;
+    setBusy(true);
+    const t = today();
+    let ids = [...s.ids];
+    const start = { ...s.start };
+    let n = 0;
+    for (const p of changes) {
+      if (!pick[p.id]) continue;
+      if (p.fit?.kind === "replace" && p.fit.replaces) {
+        ids = ids.filter((x) => x !== p.fit!.replaces!.id);
+        delete start[p.fit.replaces.id];
+      }
+      if (!ids.includes(p.id)) ids.push(p.id);
+      start[p.id] = t;
+      n++;
+    }
+    await saveSaved({ ...s, ids, start });
+    saveCounselNote({ at: t, summary: a.summary, doNow: a.doNow, watch: a.watch, doctor: a.doctor.needed ? a.doctor.why : undefined });
+    track("counsel_apply", { products: n, doctor: a.doctor.needed });
+    setBusy(false);
+    setDone(true);
+  };
+
+  return (
+    <section className="mt-5 rounded-xl border border-lemon-deep/60 bg-lemon-wash px-4 py-4 text-[14px]" aria-labelledby="apply-h">
+      <h3 id="apply-h" className="font-bold">내 루틴에 반영하기</h3>
+      {done ? (
+        <p className="mt-2" role="status">
+          반영했어요. 할 일은 내 루틴 화면 위에 보여요. 제품을 바꿨다면 캘린더 알림도 다시 넣어 주세요.{" "}
+          <Link href="/me/" className="font-semibold underline underline-offset-4">내 루틴 보기</Link>
+        </p>
+      ) : (
+        <>
+          <ul className="mt-2 space-y-1.5">
+            <li className="text-steel">오늘부터 할 일 {a.doNow.length}개를 내 루틴 화면에 띄워요.</li>
+            {changes.map((p) => (
+              <li key={p.id}>
+                <label className="flex items-start gap-2">
+                  <input type="checkbox" checked={!!pick[p.id]} onChange={(e) => setPick({ ...pick, [p.id]: e.target.checked })} className="mt-1 h-4 w-4 accent-ink" />
+                  <span>{line(p)}</span>
+                </label>
+              </li>
+            ))}
+            {a.products.filter((p) => p.fit?.kind === "have").map((p) => (
+              <li key={p.id} className="text-steel">{p.brand} {p.name}은(는) 이미 루틴에 있어요.</li>
+            ))}
+          </ul>
+          {a.doctor.needed && changes.length > 0 && <p className="mt-2 text-[13px] text-rose">진료를 먼저 받고, 새 제품은 그다음에 더하는 걸 권해요.</p>}
+          <button type="button" onClick={apply} disabled={busy} className="btn-primary mt-3 h-10 px-4 text-[14px] disabled:opacity-50">이 내용으로 내 루틴 업데이트</button>
+        </>
+      )}
+    </section>
   );
 }
