@@ -54,6 +54,49 @@ function Dist({ title, data, label }: { title: string; data: Record<string, numb
 }
 
 // 코치 자율 실행 시험: 매일 저녁 크론과 같은 코드를 운영자 본인에게만 지금 실행
+type CS = { starts: number; answers: number; avgQuestions: number | null; doctorRate: number | null; productRate: number | null; policyRate: number | null; p50ms: number | null; tokensIn: number; tokensOut: number; concerns: Record<string, number> };
+const CONCERN_KO: Record<string, string> = { trouble: "트러블", pore: "모공", oil: "유분", dry: "건조", redness: "붉어짐", tone: "톤", aging: "탄력" };
+
+// 고민 상담 익명 통계(대화 내용·사용자 ID 없이 숫자만)
+function CounselStats() {
+  const [c, setC] = useState<CS | null>(null);
+  const [err, setErr] = useState(false);
+  useEffect(() => {
+    supabase?.rpc("counsel_stats_summary").then(({ data, error }) => (error ? setErr(true) : setC(data as CS)));
+  }, []);
+  if (err) return <p className="mt-10 text-[13px] text-steel">고민 상담 통계를 불러오지 못했어요.</p>;
+  if (!c) return null;
+  const pct = (x: number | null) => (x == null ? "-" : `${Math.round(x * 100)}%`);
+  // gpt-5.4-mini 단가: 입력 $0.75, 출력 $4.50 / 100만 토큰
+  const usd = (c.tokensIn * 0.75 + c.tokensOut * 4.5) / 1e6;
+  const rows: [string, string][] = [
+    ["상담 시작", `${c.starts}건`],
+    ["답까지 간 상담", `${c.answers}건 (${c.starts ? Math.round((c.answers / c.starts) * 100) : 0}%)`],
+    ["평균 질문 수", c.avgQuestions == null ? "-" : `${c.avgQuestions}번`],
+    ["진료 먼저 안내", pct(c.doctorRate)],
+    ["제품 추천 포함", pct(c.productRate)],
+    ["정책 검사가 고친 답", pct(c.policyRate)],
+    ["응답 시간(중앙값)", c.p50ms == null ? "-" : `${(c.p50ms / 1000).toFixed(1)}초`],
+    ["AI 비용 누적", `$${usd.toFixed(3)}`],
+  ];
+  const cons = Object.entries(c.concerns).sort((a, b) => b[1] - a[1]);
+  return (
+    <section className="mt-12" aria-labelledby="cs-h">
+      <h2 id="cs-h" className="text-[20px] font-extrabold tracking-[-0.03em]">고민 상담</h2>
+      <p className="mt-1 text-[13px] text-steel">대화 내용과 사용자 정보는 저장하지 않고, 숫자와 고민 분류만 익명으로 모아요.</p>
+      <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {rows.map(([k, v]) => (
+          <div key={k} className="rounded-2xl border border-line p-4">
+            <dt className="text-[12.5px] text-steel">{k}</dt>
+            <dd className="mt-1 text-[18px] font-bold tabular-nums">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      {cons.length > 0 && <p className="mt-3 text-[13.5px] text-steel">많이 나온 고민: {cons.map(([k, n]) => `${CONCERN_KO[k] ?? k} ${n}`).join(", ")}</p>}
+    </section>
+  );
+}
+
 function AutoRunTest() {
   const [busy, setBusy] = useState<"" | "dry" | "send">("");
   const [out, setOut] = useState<string>("");
@@ -185,6 +228,7 @@ export default function AdminPage() {
         ))}
       </dl>
 
+      {!local && <CounselStats />}
       {!local && <AutoRunTest />}
 
       <section className="mt-10">
