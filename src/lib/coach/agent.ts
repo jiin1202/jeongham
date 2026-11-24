@@ -122,6 +122,9 @@ function sanitize(raw: Record<string, unknown>[], s: Snapshot, sig: ReturnType<t
   if (!soon) for (let i = out.length - 1; i >= 0; i--) if (out[i].type === "freeze_new") out.splice(i, 1);
   for (const id of sig.needsReview.slice(0, 2)) if (out.filter((a) => a.type === "ask_review").length < 2 && !out.some((a) => a.type === "ask_review" && a.productId === id)) out.push({ type: "ask_review", productId: id });
   for (const r of sig.runningOut) if (!out.some((a) => a.type === "reorder" && a.productId === r.id)) out.push({ type: "reorder", productId: r.id, reason: `${Math.max(0, r.daysLeft)}일쯤 남았어요.` });
+  // 2일 이상 빠졌는데 알림이 없으면 오늘 밤 가벼운 알림 하나를 넣는다(다시 시작하게 하는 것이 목적)
+  if (sig.missedDays >= 2 && !out.some((a) => a.type === "reminder"))
+    out.push({ type: "reminder", when: "tonight", text: "오늘 밤은 세안하고 보습제까지만 발라요." });
   return out;
 }
 
