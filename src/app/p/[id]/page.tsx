@@ -9,6 +9,7 @@ import { daysToEmpty } from "@/lib/engine";
 import ProductActions from "./ProductActions";
 import PeerResults from "./PeerResults";
 import ProductThumb from "@/components/ProductThumb";
+import { PX_BRANDS, pxNote } from "@/data/px";
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -29,7 +30,7 @@ const won = (n: number) => `${n.toLocaleString()}원`;
 export default function ProductPage({ params }: { params: { id: string } }) {
   const p = byId.get(params.id);
   if (!p) notFound();
-  const price = p.salePrice ?? p.price;
+  const price = p.price; // 정가 기준(판매처 할인가는 표시하지 않음)
   const totalVol = p.volume * p.units;
   const per10 = totalVol ? Math.round((price / totalVol) * (p.countUnit ? 1 : 10)) : null;
   const benefits = keyBenefits(p);
@@ -66,15 +67,16 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             {p.fragranceFree && <span className="rounded-full bg-fog px-3 py-1 text-steel">향료 무첨가</span>}
             {p.forMen && <span className="rounded-full bg-fog px-3 py-1 text-steel">남성용</span>}
             {p.functional && !/해당\s*없음|해당사항\s*없음/.test(p.functional) && <span className="rounded-full bg-fog px-3 py-1 text-steel">기능성 화장품</span>}
+            {PX_BRANDS.has(p.brand) && <span className="rounded-full bg-lemon-wash px-3 py-1 font-semibold text-lemon-ink" title={pxNote}>PX에서도 판매</span>}
           </div>
         </div>
         <div className="rounded-2xl border border-line p-5 sm:col-span-2 lg:col-span-1">
-          <p className="text-[13px] text-steel">조회가 ({RESEARCH_DATE})</p>
+          <p className="text-[13px] text-steel">정가 ({RESEARCH_DATE} 조회)</p>
           <p className="mt-1 text-[26px] font-extrabold tabular-nums tracking-[-0.03em]">
             {won(price)}
             {p.priceFrom && <span className="text-[15px] font-semibold text-steel">~</span>}
           </p>
-          {p.salePrice && p.salePrice < p.price && <p className="text-[13px] text-mist line-through">{won(p.price)}</p>}
+          {PX_BRANDS.has(p.brand) && <p className="mt-2 text-[12.5px] leading-5 text-steel">{pxNote}</p>}
           <dl className="mt-4 space-y-1.5 text-[13.5px]">
             <div className="flex justify-between gap-3">
               <dt className="text-steel">용량</dt>
@@ -233,7 +235,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                     <span className="block text-[13px] text-steel">{x.brand}</span>
                     <span className="block truncate text-[15px] font-semibold">{x.name}</span>
                     <FitLine p={x} className="mt-1" />
-                    <span className="mt-1 block text-[13.5px] tabular-nums text-steel">{won(x.salePrice ?? x.price)}</span>
+                    <span className="mt-1 block text-[13.5px] tabular-nums text-steel">{won(x.price)}</span>
                   </span>
                 </Link>
               </li>

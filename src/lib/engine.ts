@@ -225,7 +225,7 @@ function buildFor(a: Answers, plan: NonNullable<Answers["steps"]>): Routine {
   const picks: Pick[] = (best ?? soft ?? []) as Pick[];
   const total = picks.reduce((s, p) => s + p.product.price, 0);
   const notes: string[] = [];
-  if (!best) notes.push("예산 안에 들어오는 조합이 없어요. 예산을 조금 넘더라도 피부에 맞는 쪽을 우선했어요. 올리브영 할인가는 정상가보다 낮은 경우가 많아요.");
+  if (!best) notes.push("예산 안에 들어오는 조합이 없어요. 예산을 조금 넘더라도 피부에 맞는 쪽을 우선했어요.");
   if (sensitive) notes.push("예민한 편이라 각질 케어·레티노이드 성분이 앞쪽에 있는 제품은 뺐어요. 새 제품은 턱선에 먼저 2~3일 테스트해 보세요.");
   notes.push(...routineConflicts(picks.map((p) => p.product)));
   if (a.concerns.includes("trouble") && a.sensitive === "often") notes.push("트러블이 계속되거나 심해지면 화장품보다 피부과 진료가 먼저예요.");
@@ -369,4 +369,35 @@ export function decodeAnswers(code: string): Answers | null {
   } catch {
     return null;
   }
+}
+
+// ── 예산이 모자랄 때 사는 순서 ────────────────────────
+// 피부에 미치는 영향이 큰 기본 단계부터. 고민이 있으면 그 고민을 직접 다루는 단계를 앞으로 당긴다.
+const BUY_BASE: Partial<Record<Category, number>> = { sun: 1, moisturizer: 2, allinone: 2, cleanser: 3, serum: 4, toner: 5 };
+const BUY_WHY: Partial<Record<Category, string>> = {
+  sun: "자외선은 트러블 자국·잡티를 짙게 만들어요. 다른 걸 아껴도 이건 먼저예요.",
+  moisturizer: "피부가 버티는 힘(장벽)을 지키는 단계예요. 건조·트러블 모두 여기서 시작해요.",
+  allinone: "스킨·로션을 한 번에. 단계를 줄여도 보습은 빠지면 안 돼요.",
+  cleanser: "지금 쓰는 세안제가 순하면 다 쓸 때까지 그대로 써도 돼요.",
+  serum: "고민을 직접 다루는 단계예요. 기본이 갖춰진 다음에 더하면 효과를 보기 쉬워요.",
+  toner: "있으면 좋지만 없어도 루틴이 무너지지 않아요. 가장 나중에 사도 돼요.",
+};
+
+export type BuyStep = { pick: Pick; order: number; why: string; cumulative: number; withinBudget: boolean };
+
+export function buyOrder(picks: Pick[], budget: number, a: Answers): BuyStep[] {
+  const concernDriven = (p: Product) => p.category === "serum" && a.concerns.some((c) => p.concerns.includes(c));
+  const sorted = [...picks].sort((x, y) => {
+    const rx = (BUY_BASE[x.product.category] ?? 6) - (concernDriven(x.product) ? 1.5 : 0);
+    const ry = (BUY_BASE[y.product.category] ?? 6) - (concernDriven(y.product) ? 1.5 : 0);
+    return rx - ry || x.product.price - y.product.price;
+  });
+  let cum = 0;
+  return sorted.map((pick, i) => {
+    cum += pick.product.price;
+    const why = concernDriven(pick.product) && pick.product.category === "serum"
+      ? `${a.concerns.map((c) => concernLabel[c]).join("·")} 고민을 직접 다루는 단계라 앞으로 당겼어요.`
+      : BUY_WHY[pick.product.category] ?? "";
+    return { pick, order: i + 1, why, cumulative: cum, withinBudget: cum <= budget };
+  });
 }

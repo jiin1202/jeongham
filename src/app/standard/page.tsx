@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RESEARCH_DATE, categoryLabel, dailyUse, products, type Category } from "@/lib/model";
 import { GROUPS, type IngGroup } from "@/data/ingredients";
+import { PX_SOURCES } from "@/data/px";
 
 const rules = [
   { t: "피부 타입이 맞는가", d: "세안 30분 후 느낌으로 건성·지성·복합성·중성을 나누고, 제조사가 상세정보에 표기한 사용 대상 피부와 비교해요." },
@@ -37,6 +38,16 @@ export default function StandardPage() {
           올리브영 온라인몰의 판매 랭킹(스킨케어·클렌징·선케어·맨즈에딧·마스크팩)과 카테고리 목록에서 {RESEARCH_DATE}에 조회한 제품 {products.length}개예요.
           가격은 할인 전 정상가이고, 1+1이나 리필 같은 기획 구성 가격일 수 있어요. 각 제품의 &lsquo;화장품법에 따라 기재해야 하는 모든 성분&rsquo;, 용량, 제품 주요 사양(사용 대상 피부), 기능성 심사 여부를 상품 상세정보에서 그대로 가져와 분석했어요.
         </p>
+        <p className="mt-3 text-[15px] leading-7 text-steel">
+          &lsquo;PX에서도 판매&rsquo; 표시는 기사와 사용 후기에서 PX(군마트) 판매가 확인된 브랜드에만 붙였어요(2026-11-24 조사). PX는 판매 목록과 가격이 공개되어 있지 않아 제품 단위로는 표시하지 않고, 가격도 시중 정가로만 보여드려요.
+        </p>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-[13px] text-steel">
+          {PX_SOURCES.map((x) => (
+            <li key={x.url}>
+              <a href={x.url} target="_blank" rel="noreferrer" className="underline underline-offset-4">{x.title}</a>
+            </li>
+          ))}
+        </ul>
         <div className="mt-5 flex flex-wrap gap-2 text-[13px]">
           {(Object.keys(counts) as Category[]).map((c) => (
             <span key={c} className="rounded-full bg-fog px-3 py-1.5">

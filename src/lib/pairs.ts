@@ -122,7 +122,7 @@ const RULES: Rule[] = [
   },
 ];
 
-const priceOf = (p: Product) => p.salePrice ?? p.price;
+const priceOf = (p: Product) => p.price; // 정가 기준
 
 /** 짝 후보가 원래 제품과 같은 피부·고민을 겨냥할수록 높은 점수 */
 function fitScore(p: Product, x: Product) {

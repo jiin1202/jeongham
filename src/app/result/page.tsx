@@ -4,11 +4,12 @@ import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
 import FitLine from "@/components/FitLine";
 import { useRouter, useSearchParams } from "next/navigation";
-import { buildRoutine, decodeAnswers, encodeAnswers, pickFor, scoreProduct, type Pick } from "@/lib/engine";
+import { buildRoutine, decodeAnswers, encodeAnswers, pickFor, scoreProduct, type Pick, buyOrder } from "@/lib/engine";
 import { skinTypeLabel, type Answers } from "@/lib/quiz";
 import { loadAnswers, today } from "@/lib/store";
 import { fetchRatings, saveSaved } from "@/lib/sync";
 import { setRatings } from "@/lib/engine";
+import { PX_BRANDS, pxNote } from "@/data/px";
 import { recordDiagnosis } from "@/lib/track";
 import { categoryLabel, concernLabel, buyUrl, products } from "@/lib/model";
 import { track } from "@/lib/track";
@@ -166,10 +167,10 @@ function ResultInner() {
                     <span className="text-steel">{p.brand}</span> {p.name}
                   </h2>
                   <FitLine p={p} className="mt-1.5" />
+                  {PX_BRANDS.has(p.brand) && <p className="mt-1 text-[12.5px] font-semibold text-lemon-ink" title={pxNote}>PX에서는 보통 더 싸게 살 수 있어요(지점마다 다름)</p>}
                   <p className="mt-0.5 text-[13px] text-mist">
                     {p.volumeEstimated ? "용량 정보 없음" : `${p.volume}${/g/i.test(p.volumeText) ? "g" : "ml"}`}
                     {p.units > 1 ? ` × ${p.units}개 구성` : ""}
-                    {p.salePrice && p.salePrice < p.price ? `, 조사일 할인가 ${won(p.salePrice)}` : ""}
                   </p>
                   <ul className="mt-3 flex flex-wrap gap-1.5">
                     {pk.reasons.map((r) => (
@@ -231,6 +232,34 @@ function ResultInner() {
           {total > budget && <span className="ml-2 align-middle text-[13px] font-semibold text-amber">예산 초과</span>}
         </span>
       </div>
+
+      {(() => {
+        const order = buyOrder(picks, budget, answers);
+        const over = total > budget;
+        return (
+          <section className="mt-8 rounded-2xl border border-line p-5" aria-labelledby="buy-order-h">
+            <h2 id="buy-order-h" className="text-[16px] font-bold tracking-[-0.02em]">{over ? "예산이 모자라면 이 순서로 사세요" : "한 번에 다 사기 부담되면 이 순서로"}</h2>
+            <p className="mt-1 text-[13px] text-steel">피부에 미치는 영향이 큰 단계부터예요. 지금 쓰는 제품이 같은 단계에 있으면 다 쓸 때까지 그대로 써도 돼요.</p>
+            <ol className="mt-4 space-y-3">
+              {order.map((o) => (
+                <li key={o.pick.product.id} className={`flex gap-3 ${o.withinBudget || budget >= 999999 ? "" : "opacity-60"}`}>
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lemon text-[12.5px] font-bold">{o.order}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-[14px]">
+                      <span className="font-semibold">{categoryLabel[o.pick.product.category]} <span className="font-normal text-steel">{o.pick.product.brand} {o.pick.product.name}</span></span>
+                      <span className="tabular-nums text-steel">누적 {won(o.cumulative)}</span>
+                    </p>
+                    <p className="mt-0.5 text-[13px] leading-5 text-steel">{o.why}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            {over && budget < 999999 && (
+              <p className="mt-4 text-[13px] text-steel">흐리게 표시된 단계부터 예산({won(budget)})을 넘어요. 앞 단계만으로 시작하고, 다 써갈 때 하나씩 더해도 충분해요.</p>
+            )}
+          </section>
+        );
+      })()}
 
       <section className="mt-10 grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border border-line p-5">

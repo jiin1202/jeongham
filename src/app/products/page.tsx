@@ -35,7 +35,7 @@ const sorts: { v: Sort; label: string }[] = [
   { v: "gentle", label: "순한 성분순" },
 ];
 
-const priceOf = (p: Product) => p.salePrice ?? p.price;
+const priceOf = (p: Product) => p.price; // 정가 기준
 const unit = (p: Product) => (priceOf(p) / Math.max(1, p.volume * p.units)) * (p.countUnit ? 1 : 10);
 const hasEarly = (p: Product, g: IngGroup) => p.hits.some((h) => h.group === g && h.pos < 25);
 const hasAvoid = (p: Product, g: IngGroup) => (g === "alcohol" ? p.hits.some((h) => h.group === "alcohol" && h.pos < 6) : p.groups.has(g));
@@ -152,7 +152,7 @@ export default function ProductsPage() {
                 </button>
               ))}
             </Group>
-            <Group title="가격대" hint="올리브영 조회가 기준">
+            <Group title="가격대" hint="정가 기준">
               {prices.map((r) => (
                 <button key={r.v} type="button" aria-pressed={price.includes(r.v)} onClick={() => setPrice(toggle(price, r.v))} className={chip(price.includes(r.v))}>
                   {r.label}
