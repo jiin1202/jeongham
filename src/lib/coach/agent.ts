@@ -187,7 +187,15 @@ export async function runLLM(s: Snapshot, key: string): Promise<CoachResult> {
         const actions = sanitize((args.actions as Record<string, unknown>[]) ?? [], s, sig, dup);
         const dropped = ((args.actions as unknown[]) ?? []).length - actions.length;
         if (dropped !== 0) steps.push({ kind: "think", title: dropped > 0 ? `정책 검사: 근거 없는 행동 ${dropped}개 제외` : `정책 검사: 빠진 필수 행동 ${-dropped}개 보완` });
-        const text = (String(args.message ?? "").replace(/\b\d{8}\b/g, (m) => byId.get(m)?.name ?? "그 제품").slice(0, 120)) || "오늘도 체크 하나만 남겨요.";
+        let text = (String(args.message ?? "").replace(/\b\d{8}\b/g, (m) => byId.get(m)?.name ?? "그 제품").slice(0, 120)) || "오늘도 체크 하나만 남겨요.";
+        // 메시지와 행동이 어긋나지 않게: 정책 계층이 쉬기·교체를 뺐는데 메시지가 여전히 멈추라/빼라/바꾸라고 하면 문구를 바꾼다
+        const rawTypes: string[] = ((args.actions as { type?: string }[]) ?? []).map((a) => String(a.type));
+        const finalTypes: string[] = actions.map((a) => a.type);
+        const changeDropped = ["pause_product", "swap_product"].some((t) => rawTypes.includes(t) && !finalTypes.includes(t));
+        if (changeDropped && /(멈추|멈춰|중단|빼|쉬어|쉬는|바꾸|바꿔|교체)/.test(text)) {
+          text = sig.missedDays >= 2 ? `${sig.missedDays}일 쉬었으니 오늘은 세안하고 보습까지만 해요.` : "지금 루틴 그대로 오늘도 이어가요.";
+          steps.push({ kind: "think", title: "정책 검사: 뺀 행동을 말하는 메시지를 바꿈" });
+        }
         steps.push({ kind: "act", title: `행동 ${actions.length + 1}개 결정` });
         return { mode: "llm", model: MODEL, signals: sig, steps, actions: [{ type: "message", text }, ...actions], usage };
       }

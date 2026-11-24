@@ -70,6 +70,17 @@ const users: User[] = MIX.map((persona, i) => {
   };
 });
 
+// 시작 전 기록 채우기: 루틴을 며칠 전에 시작했다면 그동안의 체크 이력이 있어야 첫날부터 '며칠 빠짐'으로 오판하지 않는다
+for (const u of users) {
+  const first = u.snap.routine.map((r) => r.start).filter((d) => d >= day(-10)).sort()[0] ?? START;
+  for (let d = 0; day(-d - 1) >= first; d++) {
+    const date = day(-d - 1);
+    if (R() < u.checkP) u.snap.checks[date] = { am: true, pm: R() < 0.85 };
+  }
+  // 시작 전날은 체크한 상태로 둔다(시뮬레이션 첫날의 결석 판단을 깨끗하게)
+  u.snap.checks[day(-1)] = { am: true, pm: true };
+}
+
 const requests: { user: string; persona: Persona; day: number; date: string; reason: string; triggers: string[]; snap: Snapshot }[] = [];
 
 for (let t = 0; t < DAYS; t++) {
