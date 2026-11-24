@@ -40,7 +40,7 @@ const SYSTEM = `너는 '정함 고민 상담' 에이전트야. 상대는 스킨�
    - summary: 상황을 한 문장으로 다시 정리(공감 한 마디 포함, 과장 금지)
    - causes: 가능성 있는 원인 1~3개. '~일 수 있어요'처럼 단정하지 않는다
    - doNow: 오늘부터 할 일 2~4개. 구체적으로(언제, 얼마나)
-   - products: 최대 2개. 지금 쓰는 제품으로 충분하면 비워도 된다. 꼭 도구 결과의 id만
+   - products: 최대 2개. 답하기 전에 search_products를 한 번은 불러서, 고민에 맞는 게 있으면 1~2개 넣는다(예: 면도 자극이면 진정·보습). 지금 쓰는 제품으로 충분할 때만 비운다. 꼭 도구 결과의 id만
    - watch: 언제쯤 다시 확인할지(보통 2~4주 단위, 과장 금지)
    - doctor: 진료가 먼저인 신호가 있으면 needed=true와 이유
 규칙:
@@ -145,7 +145,7 @@ function sanitizeAnswer(raw: Record<string, unknown>, userText: string, seen: Se
 type Msg = { role: string; content?: string | null; tool_calls?: { id: string; function: { name: string; arguments: string } }[]; tool_call_id?: string };
 
 export async function counsel(history: ChatTurn[], ctx: CounselContext, key: string): Promise<CounselResult> {
-  const asked = history.filter((t) => t.role === "agent").length;
+  const asked = history.filter((t) => t.role !== "user").length;
   const userText = history.filter((t) => t.role === "user").map((t) => t.text).join(" / ");
   const steps: Step[] = [];
   const usage: Usage = { calls: 0, input: 0, output: 0 };
