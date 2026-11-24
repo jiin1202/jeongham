@@ -8,10 +8,12 @@ const brandHref = (b: string) => `/brands/${encodeURIComponent(b)}/`;
 export default function BrandList({ brands }: { brands: Row[] }) {
   const [q, setQ] = useState("");
   const [px, setPx] = useState(false);
+  const [sort, setSort] = useState<"count" | "name">("name");
   const list = useMemo(() => {
     const k = q.trim().replace(/\s/g, "").toLowerCase();
-    return brands.filter((b) => (!k || b.name.replace(/\s/g, "").toLowerCase().includes(k)) && (!px || b.px));
-  }, [q, px, brands]);
+    const out = brands.filter((b) => (!k || b.name.replace(/\s/g, "").toLowerCase().includes(k)) && (!px || b.px));
+    return [...out].sort(sort === "name" ? (a, b) => a.name.localeCompare(b.name, "ko") : (a, b) => b.count - a.count);
+  }, [q, px, brands, sort]);
   return (
     <>
       <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -20,6 +22,11 @@ export default function BrandList({ brands }: { brands: Row[] }) {
         <button type="button" aria-pressed={px} onClick={() => setPx(!px)} className={`rounded-full px-3.5 py-2 text-[13.5px] font-medium ${px ? "bg-lemon text-ink" : "bg-fog text-steel hover:text-ink"}`}>
           PX에서도 파는 브랜드만
         </button>
+        <span className="flex gap-1" role="group" aria-label="정렬">
+          {([["name", "가나다순"], ["count", "제품 많은 순"]] as const).map(([v, l]) => (
+            <button key={v} type="button" aria-pressed={sort === v} onClick={() => setSort(v)} className={`rounded-full px-3 py-2 text-[13px] font-medium ${sort === v ? "bg-ink text-white" : "bg-fog text-steel hover:text-ink"}`}>{l}</button>
+          ))}
+        </span>
       </div>
       {list.length === 0 ? (
         <p className="mt-8 text-[15px] text-steel">찾는 브랜드가 없어요. 이름을 다르게 입력해 보세요.</p>

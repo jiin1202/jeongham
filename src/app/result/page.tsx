@@ -65,12 +65,16 @@ function ResultInner() {
     if (!answers || !routine) return [];
     const cat = routine.steps[idx];
     const current = picks[idx]?.product.id;
-    return products
+    const brand = picks[idx]?.product.brand;
+    const fit = products
       .filter((p) => p.category === cat && p.id !== current)
-      .map((p) => ({ p, r: scoreProduct(p, answers) }))
+      .map((p) => ({ p, r: scoreProduct(p, answers), same: false }))
       .filter((x) => x.r && x.r.score > 0)
-      .sort((x, y) => y.r!.score - x.r!.score)
-      .slice(0, 3);
+      .sort((x, y) => y.r!.score - x.r!.score);
+    const top = fit.slice(0, 3);
+    // 같은 브랜드를 선호하는 사람을 위해: 같은 브랜드에서 피부에 맞는 후보 최대 2개
+    const same = fit.filter((x) => x.p.brand === brand && !top.includes(x)).slice(0, 2).map((x) => ({ ...x, same: true }));
+    return [...top, ...same];
   };
 
   if (!ready) return <div className="page py-24 text-steel">불러오는 중…</div>;
@@ -249,9 +253,10 @@ function ResultInner() {
                   {open === idx && (
                     <div className="mt-3 rounded-2xl bg-fog p-3">
                       {alts.length === 0 && <p className="px-2 py-2 text-[14px] text-steel">이 조건에 맞는 다른 후보가 없어요.</p>}
-                      {alts.map(({ p: ap }) => (
+                      {alts.map(({ p: ap, same }, ai) => (
+                        <div key={ap.id}>
+                        {same && !alts[ai - 1]?.same && <p className="px-3 pb-1 pt-3 text-[12.5px] font-semibold text-steel">같은 브랜드({ap.brand})에서 고르면</p>}
                         <button
-                          key={ap.id}
                           type="button"
                           onClick={() => {
                             setSwaps({ ...swaps, [idx]: ap.id });
@@ -268,6 +273,7 @@ function ResultInner() {
                           </span>
                           <span className="shrink-0 text-[13.5px] tabular-nums text-steel">{won(ap.price)}로 바꾸기</span>
                         </button>
+                        </div>
                       ))}
                     </div>
                   )}
