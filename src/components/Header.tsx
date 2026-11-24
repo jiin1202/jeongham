@@ -7,6 +7,7 @@ import { cloudEnabled } from "@/lib/supabase";
 const nav = [
   { href: "/products", label: "제품" },
   { href: "/brands", label: "브랜드" },
+  { href: "/counsel", label: "고민 상담" },
   { href: "/mine", label: "쓰는 제품 검사" },
   { href: "/guide", label: "가이드" },
   { href: "/me", label: "내 루틴" },
