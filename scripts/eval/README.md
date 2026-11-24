@@ -7,3 +7,8 @@
 
 모든 기록은 시뮬레이션이다. 보고서에 쓸 때 반드시 "시뮬레이션"이라고 표시한다.
 미리보기 배포는 Vercel 로그인이 걸려 있어 스크립트 호출이 막힐 수 있으니 로컬 서버(`npm run dev`)로 돌린다.
+
+## 브라우저에서 돌리기(미리보기 배포 대상)
+- `scenarios.json`: `scenarios.py`를 특정 날짜 기준으로 내보낸 것. 날짜가 상대값이라 그날 다시 만든다:
+  `python3 -c "import sys,json;sys.path.insert(0,'scripts/eval');from scenarios import SC,T;json.dump({'generated':T.isoformat(),'scenarios':SC},open('scripts/eval/scenarios.json','w'),ensure_ascii=False)"`
+- 미리보기 사이트를 연 탭에서 raw.githubusercontent.com의 이 파일을 불러와 `/api/coach/`를 호출하고, 같은 채점 규칙(must/mustNot) + "저녁 알림에 선크림 금지" 검사를 JS로 적용했다(v3, 2026-11-24).
