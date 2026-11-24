@@ -212,7 +212,7 @@ function ResultInner() {
                     </p>
                   </div>
                   <h2 className="mt-1 text-[19px] font-bold leading-snug tracking-[-0.02em]">
-                    <span className="text-steel">{p.brand}</span> {p.name}
+                    <Link href={`/brands/${encodeURIComponent(p.brand)}/`} className="text-steel hover:text-ink hover:underline">{p.brand}</Link> {p.name}
                   </h2>
                   <FitLine p={p} className="mt-1.5" />
                   {PX_BRANDS.has(p.brand) && <p className="mt-1 text-[12.5px] font-semibold text-lemon-ink" title={pxNote}>PX에서는 보통 더 싸게 살 수 있어요(지점마다 다름)</p>}

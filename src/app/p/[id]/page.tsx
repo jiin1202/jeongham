@@ -10,6 +10,7 @@ import ProductActions from "./ProductActions";
 import PeerResults from "./PeerResults";
 import ProductThumb from "@/components/ProductThumb";
 import { PX_BRANDS, pxNote } from "@/data/px";
+import { brandHref } from "@/lib/brands";
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -59,7 +60,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         <ProductThumb p={p} priority className="mx-auto h-[220px] w-[220px] sm:mx-0 sm:h-[200px] sm:w-[200px] lg:h-[240px] lg:w-[240px]" />
         <div>
           <p className="text-[13px] font-semibold text-lemon-ink">{categoryLabel[p.category]}</p>
-          <p className="mt-1 text-[15px] font-semibold text-steel">{p.brand}</p>
+          <Link href={brandHref(p.brand)} className="mt-1 inline-block text-[15px] font-semibold text-steel underline-offset-4 hover:text-ink hover:underline">{p.brand} <span className="text-[13px] font-normal">브랜드 제품 모아보기</span></Link>
           <h1 className="mt-0.5 text-[28px] font-extrabold leading-tight tracking-[-0.035em] sm:text-[34px]">{p.name}</h1>
           <FitLine p={p} size="lg" className="mt-3" />
           <div className="mt-3 flex flex-wrap gap-1.5 text-[13px]">
