@@ -1,4 +1,7 @@
-import type { Concern, SkinType } from "./model";
+import type { Category, Concern, SkinType } from "./model";
+
+/** 지금 쓰는 제품 하나. DB에 있으면 id, 없으면 종류(cat)와 이름만. 배열 순서 = 바르는 순서 */
+export type MineItem = { id?: string; cat: Category; label?: string };
 
 export type Answers = {
   feel?: "tight" | "tzone" | "allshine" | "fine";
@@ -9,6 +12,8 @@ export type Answers = {
   steps?: "min" | "basic" | "full";
   sunPain?: "sticky" | "white" | "eyes" | "never";
   budget?: 50000 | 80000 | 120000 | 999999;
+  /** 지금 쓰는 제품과 바르는 순서(선택) */
+  mine?: MineItem[];
 };
 
 export type Option<V> = { value: V; label: string; hint?: string };

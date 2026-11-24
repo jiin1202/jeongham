@@ -1,6 +1,6 @@
 import { GROUPS, type IngGroup } from "@/data/ingredients";
 import { products, byId, categoryLabel, concernLabel, dailyUse, type Category, type Product, type SkinType } from "./model";
-import { type Answers, skinTypeOf, skinTypeLabel } from "./quiz";
+import { type Answers, type MineItem, skinTypeOf, skinTypeLabel } from "./quiz";
 
 export type Pick = { product: Product; score: number; reasons: string[]; warnings: string[] };
 export type Routine = {
@@ -400,4 +400,66 @@ export function buyOrder(picks: Pick[], budget: number, a: Answers): BuyStep[] {
       : BUY_WHY[pick.product.category] ?? "";
     return { pick, order: i + 1, why, cumulative: cum, withinBudget: cum <= budget };
   });
+}
+
+// ── 지금 쓰는 루틴 진단 ────────────────────────
+// 현재 제품과 바르는 순서를 보고 1) 잘하고 있는 것 2) 바꾸면 좋은 것 3) 순서 4) 빠진 단계를 정리한다.
+// 추천을 바로 내밀기 전에 '지금 방식'부터 피드백하고, 멀쩡한 건 그대로 쓰게 해 불필요한 구매를 줄인다.
+const APPLY_ORDER: Partial<Record<Category, number>> = { cleanser: 0, pad: 1, toner: 2, serum: 3, moisturizer: 4, allinone: 4, sun: 5 };
+const isMoist = (c: Category) => c === "moisturizer" || c === "allinone";
+
+export type MineReview = {
+  items: { item: MineItem; product: Product | null; level: "good" | "caution" | "bad" | "unknown"; notes: string[] }[];
+  keep: Category[]; // 이 종류는 지금 쓰는 걸 다 쓸 때까지 그대로
+  orderIssues: string[];
+  missing: { cat: Category; why: string }[];
+  summary: string;
+};
+
+export function reviewCurrent(items: MineItem[], a: Answers): MineReview {
+  const prods = items.map((it) => (it.id ? byId.get(it.id) ?? null : null));
+  const known = prods.filter(Boolean) as Product[];
+  const checks = checkProducts(known, a);
+  const byProd = new Map(known.map((p, i) => [p.id, checks[i]]));
+  const rows = items.map((item, i) => {
+    const p = prods[i];
+    if (!p) return { item, product: null, level: "unknown" as const, notes: ["목록에 없는 제품이라 성분은 보지 못했어요. 종류와 순서만 봤어요."] };
+    const c = byProd.get(p.id)!;
+    return { item, product: p, level: c.level, notes: c.detail };
+  });
+
+  // 순서: 묽은 것 → 진한 것, 선크림은 아침 마지막
+  const orderIssues: string[] = [];
+  const seq = items.map((it) => it.cat).filter((c) => APPLY_ORDER[c] !== undefined);
+  for (let i = 0; i < seq.length - 1; i++) {
+    const x = seq[i], y = seq[i + 1];
+    if ((APPLY_ORDER[x] ?? 0) > (APPLY_ORDER[y] ?? 0)) {
+      if (x === "sun") orderIssues.push("선크림을 다른 제품보다 먼저 바르고 있어요. 선크림은 아침 마지막 단계여야 막이 제대로 생겨요.");
+      else if (isMoist(x) && y === "serum") orderIssues.push("크림·로션 다음에 세럼을 바르고 있어요. 묽은 세럼을 먼저, 크림은 나중에 발라야 흡수가 잘 돼요.");
+      else orderIssues.push(`${categoryLabel[x]} 단계를 ${categoryLabel[y]} 단계보다 먼저 하고 있어요. 보통 묽은 것부터 진한 것 순서예요.`);
+    }
+  }
+  if (seq.includes("cleanser") && seq[0] !== "cleanser") orderIssues.push("세안은 가장 먼저 해야 해요. 세안 전에 바른 제품은 씻겨 나가요.");
+
+  // 빠진 단계
+  const cats = new Set(items.map((it) => it.cat));
+  const missing: MineReview["missing"] = [];
+  if (!cats.has("sun")) missing.push({ cat: "sun", why: "선크림이 없어요. 트러블 자국과 잡티를 짙게 만드는 자외선을 막는, 가장 효과가 큰 단계예요." });
+  if (!cats.has("moisturizer") && !cats.has("allinone")) missing.push({ cat: "moisturizer", why: "보습 단계가 없어요. 번들거려도 보습을 빼면 피부가 기름을 더 내는 경우가 많아요." });
+  if (!cats.has("cleanser")) missing.push({ cat: "cleanser", why: "세안제가 없어요. 물 세안만으로는 선크림·피지가 남기 쉬워요." });
+
+  // 그대로 써도 되는 종류: 문제없는 제품이 있는 종류(모르는 제품은 판단 보류)
+  const keep = Array.from(new Set(rows.filter((r) => r.level === "good" && r.product).map((r) => (isMoist(r.item.cat) ? "moisturizer" : r.item.cat))));
+
+  const bad = rows.filter((r) => r.level === "bad").length;
+  const caution = rows.filter((r) => r.level === "caution").length;
+  const good = rows.filter((r) => r.level === "good").length;
+  const parts: string[] = [];
+  if (good) parts.push(`${good}개는 지금 피부에 잘 맞아요`);
+  if (bad + caution) parts.push(`${bad + caution}개는 바꾸거나 쓰는 법을 조정하면 좋아요`);
+  if (orderIssues.length) parts.push("바르는 순서도 고칠 데가 있어요");
+  if (missing.length) parts.push(`${missing.map((m) => categoryLabel[m.cat]).join("·")} 단계가 빠져 있어요`);
+  const summary = parts.length ? parts.join(", ") + "." : "지금 루틴에 크게 걸리는 점은 없어요.";
+
+  return { items: rows, keep, orderIssues, missing, summary };
 }

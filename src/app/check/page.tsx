@@ -1,16 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { questions, type Answers } from "@/lib/quiz";
+import { questions, type Answers, type MineItem } from "@/lib/quiz";
 import { saveAnswers } from "@/lib/store";
 import { track } from "@/lib/track";
 import type { Concern } from "@/lib/model";
+import MineStep from "./MineStep";
 
 export default function CheckPage() {
   const router = useRouter();
   const [i, setI] = useState(0);
   const [a, setA] = useState<Answers>({ concerns: [] });
   const [warn, setWarn] = useState("");
+  // '지금 몇 개 바르고 있어요?'에 '안 발라요'가 아니면, 다음 질문 전에 지금 제품·순서를 묻는다
+  const [mineStage, setMineStage] = useState(false);
   const q = questions[i];
   const last = i === questions.length - 1;
 
@@ -21,7 +24,7 @@ export default function CheckPage() {
   useEffect(() => {
     setWarn("");
     window.scrollTo({ top: 0 });
-  }, [i]);
+  }, [i, mineStage]);
 
   const finish = (next: Answers) => {
     saveAnswers(next);
@@ -30,9 +33,25 @@ export default function CheckPage() {
 
   const pickSingle = (value: unknown) => {
     const next = { ...a, [q.key]: value } as Answers;
+    if (q.key === "current" && value === "none") delete next.mine;
     setA(next);
+    if (q.key === "current" && value !== "none") {
+      setTimeout(() => setMineStage(true), 160);
+      return;
+    }
     if (last) finish(next);
     else setTimeout(() => setI((x) => x + 1), 160);
+  };
+
+  const afterMine = (items: MineItem[] | null) => {
+    const next = { ...a };
+    if (items && items.length) next.mine = items;
+    else delete next.mine;
+    setA(next);
+    setMineStage(false);
+    if (items) track("mine_entered", { n: items.length });
+    if (last) finish(next);
+    else setI((x) => x + 1);
   };
 
   const toggleMulti = (value: Concern) => {
@@ -63,7 +82,7 @@ export default function CheckPage() {
       <div className="flex items-center justify-between text-[14px]">
         <button
           type="button"
-          onClick={() => (i === 0 ? router.push("/") : setI(i - 1))}
+          onClick={() => (mineStage ? setMineStage(false) : i === 0 ? router.push("/") : setI(i - 1))}
           className="rounded-lg px-2 py-1 text-steel hover:text-ink"
         >
           이전
@@ -76,6 +95,10 @@ export default function CheckPage() {
         <div className="h-1 rounded-full bg-lemon-deep transition-[width] duration-300" style={{ width: `${((i + 1) / questions.length) * 100}%` }} />
       </div>
 
+      {mineStage ? (
+        <MineStep initial={a.mine ?? []} onDone={(items) => afterMine(items)} onSkip={() => afterMine(null)} />
+      ) : (
+      <>
       <h1 className="mt-10 text-[28px] font-extrabold leading-snug tracking-[-0.035em] sm:text-[34px]">{q.title}</h1>
       {q.sub && <p className="mt-2 text-[15px] text-steel">{q.sub}</p>}
 
@@ -123,6 +146,8 @@ export default function CheckPage() {
         <button type="button" onClick={nextFromMulti} className="btn-primary mt-8 w-full">
           {last ? "결과 보기" : `다음 (${a.concerns.length}/${q.max})`}
         </button>
+      )}
+      </>
       )}
     </div>
   );

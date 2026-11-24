@@ -4,14 +4,15 @@ import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
 import FitLine from "@/components/FitLine";
 import { useRouter, useSearchParams } from "next/navigation";
-import { buildRoutine, decodeAnswers, encodeAnswers, pickFor, scoreProduct, type Pick, buyOrder } from "@/lib/engine";
+import { buildRoutine, decodeAnswers, encodeAnswers, pickFor, scoreProduct, type Pick, buyOrder, reviewCurrent } from "@/lib/engine";
+import { CONCERN_PLAN } from "@/lib/concernPlan";
 import { skinTypeLabel, type Answers } from "@/lib/quiz";
 import { loadAnswers, today } from "@/lib/store";
 import { fetchRatings, saveSaved } from "@/lib/sync";
 import { setRatings } from "@/lib/engine";
 import { PX_BRANDS, pxNote } from "@/data/px";
 import { recordDiagnosis } from "@/lib/track";
-import { categoryLabel, concernLabel, buyUrl, products } from "@/lib/model";
+import { categoryLabel, concernLabel, buyUrl, products, type Category } from "@/lib/model";
 import { track } from "@/lib/track";
 
 const won = (n: number) => n.toLocaleString("ko-KR") + "원";
@@ -38,6 +39,15 @@ function ResultInner() {
   }, [shared]);
 
   const routine = useMemo(() => (answers ? buildRoutine(answers) : null), [answers]);
+  // 지금 쓰는 루틴 진단(입력한 경우만)
+  const review = useMemo(() => (answers?.mine?.length ? reviewCurrent(answers.mine, answers) : null), [answers]);
+  const keyCat = (c: Category): Category => (c === "allinone" ? "moisturizer" : c);
+  /** 이 단계는 지금 쓰는 제품이 잘 맞아 '다 쓴 다음에' 사면 되는지 */
+  const keptName = (c: Category) => {
+    if (!review || !review.keep.includes(keyCat(c))) return null;
+    const row = review.items.find((r) => r.level === "good" && r.product && keyCat(r.item.cat) === keyCat(c));
+    return row?.product ? `${row.product.brand} ${row.product.name}` : null;
+  };
   useEffect(() => {
     if (routine && answers && !shared) recordDiagnosis(answers, routine.picks.map((p) => p.product.id), routine.total, routine.plan);
   }, [routine, answers, shared]);
@@ -81,6 +91,8 @@ function ResultInner() {
 
   const total = picks.reduce((s, p) => s + p.product.price, 0);
   const budget = answers.budget ?? 999999;
+  const toBuy = picks.filter((p) => !keptName(p.product.category));
+  const totalNow = toBuy.reduce((s, p) => s + p.product.price, 0);
 
   const save = async () => {
     const start: Record<string, string> = {};
@@ -91,7 +103,7 @@ function ResultInner() {
   };
 
   const share = async () => {
-    const url = `${location.origin}/result/?d=${encodeAnswers(answers)}`;
+    const url = `${location.origin}/result/?d=${encodeAnswers({ ...answers, mine: undefined })}`; // 지금 쓰는 제품은 공유하지 않음
     const text = `내 피부는 ${skinTypeLabel[routine.skin]}, 정함이 정해준 루틴 보기`;
     try {
       track("share");
@@ -139,6 +151,42 @@ function ResultInner() {
         {routine.excluded > 0 ? ` 자극이 겹칠 수 있는 ${routine.excluded}개는 뺐어요.` : " 자극 우려로 뺀 제품은 없어요."} 예산 안에서 점수가 가장 높은 조합이에요.
       </p>
 
+      {review && (
+        <section className="mt-10" aria-labelledby="review-h">
+          <h2 id="review-h" className="text-[22px] font-bold tracking-[-0.03em]">먼저, 지금 루틴부터 볼게요</h2>
+          <p className="mt-2 text-[15px] leading-7 text-steel">{review.summary}</p>
+          <ol className="mt-4 space-y-2">
+            {review.items.map((r, i) => {
+              const tag = { good: "잘 맞아요", caution: "조정하면 좋아요", bad: "바꾸는 게 좋아요", unknown: "성분 확인 못 함" }[r.level];
+              const color = { good: "bg-lemon-wash text-lemon-ink", caution: "bg-amber-wash text-amber", bad: "bg-rose-wash text-rose", unknown: "bg-fog text-steel" }[r.level];
+              return (
+                <li key={i} className="rounded-2xl border border-line p-4">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="text-[15px] font-semibold">
+                      <span className="mr-2 text-steel">{i + 1}.</span>
+                      {r.product ? `${r.product.brand} ${r.product.name}` : r.item.label || categoryLabel[r.item.cat]}
+                      <span className="ml-2 text-[12.5px] font-normal text-steel">{categoryLabel[r.item.cat]}</span>
+                    </p>
+                    <span className={`rounded-full px-2.5 py-1 text-[12.5px] font-semibold ${color}`}>{tag}</span>
+                  </div>
+                  <ul className="mt-2 space-y-1 text-[13.5px] leading-6 text-steel">
+                    {r.notes.map((n) => <li key={n}>{n}</li>)}
+                  </ul>
+                </li>
+              );
+            })}
+          </ol>
+          {(review.orderIssues.length > 0 || review.missing.length > 0) && (
+            <ul className="mt-3 space-y-2 rounded-2xl bg-amber-wash p-4 text-[14px] leading-6 text-[#6B4300]">
+              {review.orderIssues.map((x) => <li key={x}>순서: {x}</li>)}
+              {review.missing.map((m) => <li key={m.cat}>빠진 단계: {m.why}</li>)}
+            </ul>
+          )}
+          <h2 className="mt-10 text-[22px] font-bold tracking-[-0.03em]">그래서 이렇게 바꾸면 좋아요</h2>
+          <p className="mt-2 text-[14px] text-steel">잘 맞는 제품은 다 쓸 때까지 그대로 쓰고, 그 단계는 다 쓴 다음에 아래 제품으로 바꾸면 돼요.</p>
+        </section>
+      )}
+
       <ol className="mt-10 divide-y divide-line border-y border-line">
         {picks.map((pk, idx) => {
           const p = pk.product;
@@ -168,6 +216,11 @@ function ResultInner() {
                   </h2>
                   <FitLine p={p} className="mt-1.5" />
                   {PX_BRANDS.has(p.brand) && <p className="mt-1 text-[12.5px] font-semibold text-lemon-ink" title={pxNote}>PX에서는 보통 더 싸게 살 수 있어요(지점마다 다름)</p>}
+                  {keptName(p.category) && (
+                    <p className="mt-2 rounded-lg bg-lemon-wash px-3 py-2 text-[13px] text-lemon-ink">
+                      지금 쓰는 제품({keptName(p.category)})이 잘 맞아요. 다 쓸 때까지 그대로 쓰고, 다 쓰면 이걸로 바꿔요.
+                    </p>
+                  )}
                   <p className="mt-0.5 text-[13px] text-mist">
                     {p.volumeEstimated ? "용량 정보 없음" : `${p.volume}${/g/i.test(p.volumeText) ? "g" : "ml"}`}
                     {p.units > 1 ? ` × ${p.units}개 구성` : ""}
@@ -232,10 +285,17 @@ function ResultInner() {
           {total > budget && <span className="ml-2 align-middle text-[13px] font-semibold text-amber">예산 초과</span>}
         </span>
       </div>
+      {totalNow < total && (
+        <div className="mt-2 flex items-baseline justify-between">
+          <span className="text-[14px] text-steel">지금 살 것(잘 맞는 제품은 다 쓴 다음에)</span>
+          <span className="text-[18px] font-bold tabular-nums">{won(totalNow)}</span>
+        </div>
+      )}
 
       {(() => {
-        const order = buyOrder(picks, budget, answers);
-        const over = total > budget;
+        const order = buyOrder(toBuy, budget, answers);
+        const over = totalNow > budget;
+        if (order.length === 0) return null;
         return (
           <section className="mt-8 rounded-2xl border border-line p-5" aria-labelledby="buy-order-h">
             <h2 id="buy-order-h" className="text-[16px] font-bold tracking-[-0.02em]">{over ? "예산이 모자라면 이 순서로 사세요" : "한 번에 다 사기 부담되면 이 순서로"}</h2>
@@ -282,6 +342,45 @@ function ResultInner() {
             <li key={n}>{n}</li>
           ))}
         </ul>
+      )}
+
+      {answers.concerns.length > 0 && (
+        <section className="mt-12" aria-labelledby="plan-h">
+          <h2 id="plan-h" className="text-[19px] font-bold tracking-[-0.02em]">고민별로 이렇게 풀어가요</h2>
+          <p className="mt-1 text-[13.5px] text-steel">화장품으로 할 수 있는 범위만 적었어요. 아래 &lsquo;이럴 땐&rsquo;에 해당하면 진료가 먼저예요.</p>
+          <div className="mt-4 space-y-4">
+            {answers.concerns.map((c) => {
+              const pl = CONCERN_PLAN[c];
+              const who = picks.filter((pk) => pk.product.concerns.includes(c));
+              return (
+                <article key={c} className="rounded-2xl border border-line p-5">
+                  <h3 className="text-[16px] font-bold">{concernLabel[c]}: {pl.goal}</h3>
+                  <p className="mt-2 text-[14px] leading-6">
+                    <span className="font-semibold">맡는 성분</span> <span className="text-steel">{pl.ingredients}</span>
+                  </p>
+                  {who.length > 0 && (
+                    <p className="mt-1 text-[14px] leading-6">
+                      <span className="font-semibold">이 루틴에서는</span>{" "}
+                      <span className="text-steel">{who.map((pk) => `${pk.product.brand} ${pk.product.name}`).join(", ")}</span>
+                    </p>
+                  )}
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <p className="text-[13px] font-semibold">쓰는 법</p>
+                      <ul className="mt-1 list-disc space-y-1 pl-5 text-[13.5px] leading-6 text-steel">{pl.how.map((x) => <li key={x}>{x}</li>)}</ul>
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-semibold">생활에서</p>
+                      <ul className="mt-1 list-disc space-y-1 pl-5 text-[13.5px] leading-6 text-steel">{pl.habits.map((x) => <li key={x}>{x}</li>)}</ul>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-[13.5px] leading-6"><span className="font-semibold">언제쯤</span> <span className="text-steel">{pl.when}</span></p>
+                  <p className="mt-1 text-[13.5px] leading-6 text-rose"><span className="font-semibold">이럴 땐</span> {pl.stop}</p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
       )}
 
       {routine.special.length > 0 && (
