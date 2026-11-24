@@ -39,8 +39,11 @@ export function pushTriggers(s: Snapshot, sig: Signals): Trigger[] {
       out.push({ key: `reorder:${r.id}:${start}`, priority: 2, label: `제품 소진 약 ${Math.max(0, r.daysLeft)}일 전` });
     }
 
-  // 3주 이상 썼는데 후기 없음: 제품당 한 번
-  for (const id of sig.needsReview.slice(0, 2)) out.push({ key: `review:${id}`, priority: 1, label: "4주 후기 요청" });
+  // 3주 이상 썼는데 후기 없음: 루틴(시작일)당 한 번만. 제품마다 따로 연락하면 알림 피로가 커진다(시뮬레이션에서 확인)
+  if (sig.needsReview.length) {
+    const first = s.routine.map((r) => r.start).sort()[0] ?? "";
+    out.push({ key: `review:${first}`, priority: 1, label: `4주 후기 요청(${sig.needsReview.length}개 제품)` });
+  }
 
   return out.sort((a, b) => b.priority - a.priority);
 }

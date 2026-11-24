@@ -1,0 +1,1067 @@
+{
+ "summary": {
+  "start": "2026-10-26",
+  "days": 28,
+  "users": 30,
+  "assumptions": {
+   "resumeAfterMissedPush": 0.4,
+   "acceptPause": 0.6,
+   "reviewAfterAsk": 0.3,
+   "logEveryDays": 3
+  },
+  "totalPushes": 103,
+  "pushesPerUser": {
+   "mean": 3.43,
+   "min": 1,
+   "max": 6
+  },
+  "usersNeverContacted": 0,
+  "maxPushesPerUserPerDay": 1,
+  "byReason": {
+   "missed": 54,
+   "reorder": 4,
+   "review": 30,
+   "goal": 10,
+   "irritation": 5
+  },
+  "byPersona": {
+   "steady": {
+    "users": 8,
+    "pushes": 16
+   },
+   "fader": {
+    "users": 8,
+    "pushes": 30
+   },
+   "irritation": {
+    "users": 5,
+    "pushes": 16
+   },
+   "goal": {
+    "users": 5,
+    "pushes": 26
+   },
+   "runout": {
+    "users": 4,
+    "pushes": 15
+   }
+  },
+  "gptCallsAvoided": 737
+ },
+ "users": [
+  {
+   "id": "U01",
+   "persona": "steady",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-17:7",
+     "label": "9일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-17:7"
+     ]
+    },
+    {
+     "day": 12,
+     "key": "review:2026-10-17",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-17"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U02",
+   "persona": "steady",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-24:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-24:2"
+     ]
+    },
+    {
+     "day": 19,
+     "key": "review:2026-10-24",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-24"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U03",
+   "persona": "steady",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-18:7",
+     "label": "8일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-18:7"
+     ]
+    },
+    {
+     "day": 13,
+     "key": "review:2026-10-18",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-18"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U04",
+   "persona": "steady",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-18:7",
+     "label": "8일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-18:7"
+     ]
+    },
+    {
+     "day": 13,
+     "key": "missed:2026-11-06:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-06:2",
+      "review:2026-10-18"
+     ]
+    },
+    {
+     "day": 14,
+     "key": "review:2026-10-18",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-18"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U05",
+   "persona": "steady",
+   "pushes": [
+    {
+     "day": 21,
+     "key": "review:2026-10-26",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-26"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U06",
+   "persona": "steady",
+   "pushes": [
+    {
+     "day": 20,
+     "key": "review:2026-10-25",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-25"
+     ]
+    },
+    {
+     "day": 27,
+     "key": "missed:2026-11-20:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-20:2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U07",
+   "persona": "steady",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-24:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-24:2"
+     ]
+    },
+    {
+     "day": 19,
+     "key": "review:2026-10-24",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-24"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U08",
+   "persona": "steady",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-19:7",
+     "label": "7일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-19:7"
+     ]
+    },
+    {
+     "day": 14,
+     "key": "review:2026-10-19",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-19"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U09",
+   "persona": "fader",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-19:7",
+     "label": "7일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-19:7"
+     ]
+    },
+    {
+     "day": 7,
+     "key": "missed:2026-10-31:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-31:2"
+     ]
+    },
+    {
+     "day": 14,
+     "key": "review:2026-10-19",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-19"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U10",
+   "persona": "fader",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-21:4",
+     "label": "5일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-21:4"
+     ]
+    },
+    {
+     "day": 15,
+     "key": "missed:2026-11-08:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-08:2"
+     ]
+    },
+    {
+     "day": 16,
+     "key": "review:2026-10-21",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-21"
+     ]
+    },
+    {
+     "day": 17,
+     "key": "missed:2026-11-08:4",
+     "label": "4일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-08:4"
+     ]
+    },
+    {
+     "day": 20,
+     "key": "missed:2026-11-08:7",
+     "label": "7일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-08:7"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U11",
+   "persona": "fader",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-18:7",
+     "label": "8일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-18:7"
+     ]
+    },
+    {
+     "day": 7,
+     "key": "missed:2026-10-31:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-31:2"
+     ]
+    },
+    {
+     "day": 9,
+     "key": "missed:2026-10-31:4",
+     "label": "4일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-31:4"
+     ]
+    },
+    {
+     "day": 13,
+     "key": "review:2026-10-18",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-18"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U12",
+   "persona": "fader",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-23:2",
+     "label": "3일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-23:2"
+     ]
+    },
+    {
+     "day": 18,
+     "key": "review:2026-10-23",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-23"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U13",
+   "persona": "fader",
+   "pushes": [
+    {
+     "day": 7,
+     "key": "missed:2026-10-31:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-31:2"
+     ]
+    },
+    {
+     "day": 9,
+     "key": "missed:2026-10-31:4",
+     "label": "4일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-31:4"
+     ]
+    },
+    {
+     "day": 12,
+     "key": "missed:2026-10-31:7",
+     "label": "7일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-31:7"
+     ]
+    },
+    {
+     "day": 20,
+     "key": "review:2026-10-25",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-25"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U14",
+   "persona": "fader",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-18:7",
+     "label": "8일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-18:7"
+     ]
+    },
+    {
+     "day": 13,
+     "key": "review:2026-10-18",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-18"
+     ]
+    },
+    {
+     "day": 15,
+     "key": "missed:2026-11-08:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-08:2"
+     ]
+    },
+    {
+     "day": 17,
+     "key": "missed:2026-11-08:4",
+     "label": "4일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-08:4"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U15",
+   "persona": "fader",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-24:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-24:2"
+     ]
+    },
+    {
+     "day": 15,
+     "key": "missed:2026-11-08:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-08:2"
+     ]
+    },
+    {
+     "day": 17,
+     "key": "missed:2026-11-08:4",
+     "label": "4일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-08:4"
+     ]
+    },
+    {
+     "day": 19,
+     "key": "review:2026-10-24",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-24"
+     ]
+    },
+    {
+     "day": 20,
+     "key": "missed:2026-11-08:7",
+     "label": "7일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-08:7"
+     ]
+    },
+    {
+     "day": 27,
+     "key": "missed:2026-11-20:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-20:2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U16",
+   "persona": "fader",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-17:7",
+     "label": "9일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-17:7"
+     ]
+    },
+    {
+     "day": 12,
+     "key": "review:2026-10-17",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-17"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U17",
+   "persona": "irritation",
+   "pushes": [
+    {
+     "day": 8,
+     "key": "irritation:2026-11-03",
+     "label": "따가움 3/3 기록 후 확인",
+     "all": [
+      "irritation:2026-11-03"
+     ]
+    },
+    {
+     "day": 10,
+     "key": "missed:2026-11-03:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-03:2"
+     ]
+    },
+    {
+     "day": 21,
+     "key": "review:2026-10-26",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-26"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U18",
+   "persona": "irritation",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-24:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-24:2"
+     ]
+    },
+    {
+     "day": 10,
+     "key": "irritation:2026-11-05",
+     "label": "따가움 2/3 기록 후 확인",
+     "all": [
+      "irritation:2026-11-05"
+     ]
+    },
+    {
+     "day": 19,
+     "key": "review:2026-10-24",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-24"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U19",
+   "persona": "irritation",
+   "pushes": [
+    {
+     "day": 5,
+     "key": "missed:2026-10-29:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-29:2"
+     ]
+    },
+    {
+     "day": 7,
+     "key": "irritation:2026-11-02",
+     "label": "따가움 2/3 기록 후 확인",
+     "all": [
+      "irritation:2026-11-02"
+     ]
+    },
+    {
+     "day": 21,
+     "key": "review:2026-10-26",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-26"
+     ]
+    },
+    {
+     "day": 23,
+     "key": "missed:2026-11-16:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-16:2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U20",
+   "persona": "irritation",
+   "pushes": [
+    {
+     "day": 7,
+     "key": "missed:2026-10-31:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-31:2"
+     ]
+    },
+    {
+     "day": 10,
+     "key": "irritation:2026-11-05",
+     "label": "따가움 2/3 기록 후 확인",
+     "all": [
+      "irritation:2026-11-05"
+     ]
+    },
+    {
+     "day": 21,
+     "key": "review:2026-10-26",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-26"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U21",
+   "persona": "irritation",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-22:4",
+     "label": "4일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-22:4"
+     ]
+    },
+    {
+     "day": 7,
+     "key": "irritation:2026-11-02",
+     "label": "따가움 2/3 기록 후 확인",
+     "all": [
+      "irritation:2026-11-02"
+     ]
+    },
+    {
+     "day": 17,
+     "key": "review:2026-10-22",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-22"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U22",
+   "persona": "goal",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-20:4",
+     "label": "6일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-20:4"
+     ]
+    },
+    {
+     "day": 11,
+     "key": "goal:2026-11-13:week",
+     "label": "소개팅 D-7",
+     "all": [
+      "goal:2026-11-13:week"
+     ]
+    },
+    {
+     "day": 12,
+     "key": "missed:2026-11-05:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-05:2"
+     ]
+    },
+    {
+     "day": 15,
+     "key": "review:2026-10-20",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-20"
+     ]
+    },
+    {
+     "day": 17,
+     "key": "goal:2026-11-13:eve",
+     "label": "소개팅 D-1",
+     "all": [
+      "goal:2026-11-13:eve"
+     ]
+    },
+    {
+     "day": 22,
+     "key": "missed:2026-11-15:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-15:2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U23",
+   "persona": "goal",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-19:7",
+     "label": "7일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-19:7"
+     ]
+    },
+    {
+     "day": 5,
+     "key": "goal:2026-11-07:week",
+     "label": "면접 D-7",
+     "all": [
+      "goal:2026-11-07:week"
+     ]
+    },
+    {
+     "day": 11,
+     "key": "goal:2026-11-07:eve",
+     "label": "면접 D-1",
+     "all": [
+      "goal:2026-11-07:eve"
+     ]
+    },
+    {
+     "day": 14,
+     "key": "review:2026-10-19",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-19"
+     ]
+    },
+    {
+     "day": 22,
+     "key": "missed:2026-11-15:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-15:2"
+     ]
+    },
+    {
+     "day": 27,
+     "key": "missed:2026-11-20:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-20:2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U24",
+   "persona": "goal",
+   "pushes": [
+    {
+     "day": 6,
+     "key": "goal:2026-11-08:week",
+     "label": "소개팅 D-7",
+     "all": [
+      "goal:2026-11-08:week"
+     ]
+    },
+    {
+     "day": 12,
+     "key": "goal:2026-11-08:eve",
+     "label": "소개팅 D-1",
+     "all": [
+      "goal:2026-11-08:eve"
+     ]
+    },
+    {
+     "day": 20,
+     "key": "review:2026-10-25",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-25"
+     ]
+    },
+    {
+     "day": 23,
+     "key": "missed:2026-11-16:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-16:2"
+     ]
+    },
+    {
+     "day": 26,
+     "key": "missed:2026-11-19:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-19:2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U25",
+   "persona": "goal",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-17:7",
+     "label": "9일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-17:7"
+     ]
+    },
+    {
+     "day": 9,
+     "key": "goal:2026-11-11:week",
+     "label": "발표 D-7",
+     "all": [
+      "goal:2026-11-11:week"
+     ]
+    },
+    {
+     "day": 12,
+     "key": "review:2026-10-17",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-17"
+     ]
+    },
+    {
+     "day": 15,
+     "key": "goal:2026-11-11:eve",
+     "label": "발표 D-1",
+     "all": [
+      "goal:2026-11-11:eve"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U26",
+   "persona": "goal",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-19:7",
+     "label": "7일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-19:7"
+     ]
+    },
+    {
+     "day": 5,
+     "key": "goal:2026-11-07:week",
+     "label": "소개팅 D-7",
+     "all": [
+      "goal:2026-11-07:week",
+      "missed:2026-10-29:2"
+     ]
+    },
+    {
+     "day": 11,
+     "key": "goal:2026-11-07:eve",
+     "label": "소개팅 D-1",
+     "all": [
+      "goal:2026-11-07:eve"
+     ]
+    },
+    {
+     "day": 14,
+     "key": "review:2026-10-19",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-10-19"
+     ]
+    },
+    {
+     "day": 18,
+     "key": "missed:2026-11-11:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-11:2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U27",
+   "persona": "runout",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-12:7",
+     "label": "14일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-12:7",
+      "review:2026-09-12"
+     ]
+    },
+    {
+     "day": 1,
+     "key": "reorder:00240562:2026-09-12",
+     "label": "제품 소진 약 5일 전",
+     "all": [
+      "reorder:00240562:2026-09-12",
+      "review:2026-09-12"
+     ]
+    },
+    {
+     "day": 2,
+     "key": "review:2026-09-12",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-09-12"
+     ]
+    },
+    {
+     "day": 3,
+     "key": "missed:2026-10-27:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-27:2"
+     ]
+    },
+    {
+     "day": 22,
+     "key": "missed:2026-11-15:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-15:2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U28",
+   "persona": "runout",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-12:7",
+     "label": "14일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-12:7",
+      "review:2026-09-12"
+     ]
+    },
+    {
+     "day": 1,
+     "key": "reorder:00240562:2026-09-12",
+     "label": "제품 소진 약 5일 전",
+     "all": [
+      "reorder:00240562:2026-09-12",
+      "review:2026-09-12"
+     ]
+    },
+    {
+     "day": 2,
+     "key": "review:2026-09-12",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-09-12"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U29",
+   "persona": "runout",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-12:7",
+     "label": "14일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-12:7",
+      "review:2026-09-12"
+     ]
+    },
+    {
+     "day": 1,
+     "key": "reorder:00240562:2026-09-12",
+     "label": "제품 소진 약 5일 전",
+     "all": [
+      "reorder:00240562:2026-09-12",
+      "review:2026-09-12"
+     ]
+    },
+    {
+     "day": 2,
+     "key": "review:2026-09-12",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-09-12"
+     ]
+    },
+    {
+     "day": 9,
+     "key": "missed:2026-11-02:2",
+     "label": "2일 연속 체크 없음",
+     "all": [
+      "missed:2026-11-02:2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "U30",
+   "persona": "runout",
+   "pushes": [
+    {
+     "day": 0,
+     "key": "missed:2026-10-12:7",
+     "label": "14일 연속 체크 없음",
+     "all": [
+      "missed:2026-10-12:7",
+      "review:2026-09-12"
+     ]
+    },
+    {
+     "day": 1,
+     "key": "reorder:00240562:2026-09-12",
+     "label": "제품 소진 약 5일 전",
+     "all": [
+      "reorder:00240562:2026-09-12",
+      "review:2026-09-12"
+     ]
+    },
+    {
+     "day": 2,
+     "key": "review:2026-09-12",
+     "label": "4주 후기 요청(4개 제품)",
+     "all": [
+      "review:2026-09-12"
+     ]
+    }
+   ]
+  }
+ ]
+}
