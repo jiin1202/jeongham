@@ -5,7 +5,8 @@ import { supabase, cloudEnabled } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { track } from "@/lib/track";
 
-const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+// 붙여넣을 때 섞인 공백·따옴표·줄바꿈은 제거한다
+const VAPID = (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "").replace(/[\s"']/g, "");
 
 function b64ToBytes(s: string) {
   const pad = "=".repeat((4 - (s.length % 4)) % 4);
@@ -47,21 +48,32 @@ export default function PushSettings() {
     setMsg(null);
     if (!user || !supabase) return;
     setState("busy");
+    // 어느 단계에서 실패했는지 사용자에게 알려준다(권한 → 등록 → 구독 → 저장)
+    let step = "권한 요청";
     try {
       const perm = await Notification.requestPermission();
-      if (perm !== "granted") return setState(perm === "denied" ? "denied" : "off");
+      if (perm !== "granted") {
+        setState(perm === "denied" ? "denied" : "off");
+        if (perm !== "denied") setMsg("알림 권한을 허용해야 켤 수 있어요.");
+        return;
+      }
+      step = "알림 준비";
       const reg = await navigator.serviceWorker.register("/sw.js");
       await navigator.serviceWorker.ready;
+      step = "구독";
       const sub = (await reg.pushManager.getSubscription()) ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(VAPID) }));
+      step = "저장";
       const j = sub.toJSON();
       const { error } = await supabase.from("push_subs").upsert({ endpoint: sub.endpoint, user_id: user.id, keys: j.keys, am_hour: am, pm_hour: pm });
       if (error) throw error;
       track("push_on");
       setState("on");
       setMsg("알림을 켰어요.");
-    } catch {
+    } catch (e) {
       setState("off");
-      setMsg("알림을 켜지 못했어요. 아이폰은 Safari 공유 버튼에서 '홈 화면에 추가'한 뒤 다시 시도해 주세요.");
+      const why = String((e as { message?: string })?.message ?? e).slice(0, 80);
+      const ios = /iPhone|iPad/.test(navigator.userAgent);
+      setMsg(`알림을 켜지 못했어요(${step} 단계: ${why}).${ios ? " 아이폰은 Safari 공유 버튼에서 '홈 화면에 추가'한 뒤 다시 시도해 주세요." : ""}`);
     }
   };
 
