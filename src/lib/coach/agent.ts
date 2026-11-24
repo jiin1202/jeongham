@@ -192,8 +192,16 @@ export async function runLLM(s: Snapshot, key: string): Promise<CoachResult> {
         const rawTypes: string[] = ((args.actions as { type?: string }[]) ?? []).map((a) => String(a.type));
         const finalTypes: string[] = actions.map((a) => a.type);
         const changeDropped = ["pause_product", "swap_product"].some((t) => rawTypes.includes(t) && !finalTypes.includes(t));
-        if (changeDropped && /(멈추|멈춰|중단|빼|쉬어|쉬는|바꾸|바꿔|교체)/.test(text)) {
-          text = sig.missedDays >= 2 ? `${sig.missedDays}일 쉬었으니 오늘은 세안하고 보습까지만 해요.` : "지금 루틴 그대로 오늘도 이어가요.";
+        // '새 제품 추가는 멈춰요'처럼 새 제품 금지를 말하는 경우는 제외
+        const talksChange = /(멈추|멈춰|중단|빼|쉬어|쉬고|쉬는|쉬세요|쉬자|바꾸|바꿔|교체)/.test(text.replace(/새 제품[^.]*?(멈|쉬|중단)\S*/g, ""));
+        if (changeDropped && talksChange) {
+          // 대신 쓸 문구는 오늘 가장 중요한 이유에 맞춘다
+          const soonGoal = sig.goalDaysLeft !== null && sig.goalDaysLeft >= 0 && sig.goalDaysLeft <= 7;
+          text = sig.missedDays >= 2 ? `${sig.missedDays}일 쉬었으니 오늘은 세안하고 보습까지만 해요.`
+            : soonGoal ? `${s.goal?.label ?? "중요한 날"}까지 ${sig.goalDaysLeft}일, 새 제품 없이 지금 루틴 그대로 가요.`
+            : sig.runningOut.length ? "다 떨어져 가는 제품이 있어요. 끊기기 전에 미리 챙겨요."
+            : sig.needsReview.length ? "3주 넘게 써봤네요. 써본 느낌을 30초만 남겨주면 다음 사람에게 큰 도움이 돼요."
+            : "지금 루틴 그대로 오늘도 이어가요.";
           steps.push({ kind: "think", title: "정책 검사: 뺀 행동을 말하는 메시지를 바꿈" });
         }
         steps.push({ kind: "act", title: `행동 ${actions.length + 1}개 결정` });
