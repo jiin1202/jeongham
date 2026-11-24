@@ -83,7 +83,9 @@ export async function POST(req: Request) {
 async function runAuto(e: NonNullable<ReturnType<typeof env>>, opts: Opts) {
   const { dry } = opts;
   const { url, key, pub, priv } = e;
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT ?? "mailto:hello@jeongham.app", pub, priv);
+  const subj = (process.env.VAPID_SUBJECT ?? "").trim().replace(/^["']|["']$/g, "");
+  // web-push는 mailto: 또는 https:// 로 시작해야 한다. 아니면 기본값
+  webpush.setVapidDetails(/^(mailto:|https:\/\/)/.test(subj) ? subj : "mailto:hello@jeongham.app", pub, priv);
   const db = createClient(url, key, { auth: { persistSession: false } });
   const today = kstDay();
 

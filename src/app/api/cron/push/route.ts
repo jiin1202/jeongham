@@ -21,7 +21,9 @@ export async function GET(req: Request) {
   const priv = process.env.VAPID_PRIVATE_KEY?.match(/[A-Za-z0-9_-]{40,}/)?.[0];
   if (!url || !key || !pub || !priv) return NextResponse.json({ error: "env missing" }, { status: 500 });
 
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT ?? "mailto:hello@jeongham.app", pub, priv);
+  const subj = (process.env.VAPID_SUBJECT ?? "").trim().replace(/^["']|["']$/g, "");
+  // web-push는 mailto: 또는 https:// 로 시작해야 한다. 아니면 기본값
+  webpush.setVapidDetails(/^(mailto:|https:\/\/)/.test(subj) ? subj : "mailto:hello@jeongham.app", pub, priv);
   const db = createClient(url, key, { auth: { persistSession: false } });
   const { hour, day } = kst();
 
