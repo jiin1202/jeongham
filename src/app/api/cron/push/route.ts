@@ -17,8 +17,8 @@ export async function GET(req: Request) {
   if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  const priv = process.env.VAPID_PRIVATE_KEY;
+  const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.match(/[A-Za-z0-9_-]{80,}/)?.[0];
+  const priv = process.env.VAPID_PRIVATE_KEY?.match(/[A-Za-z0-9_-]{40,}/)?.[0];
   if (!url || !key || !pub || !priv) return NextResponse.json({ error: "env missing" }, { status: 500 });
 
   webpush.setVapidDetails(process.env.VAPID_SUBJECT ?? "mailto:hello@jeongham.app", pub, priv);

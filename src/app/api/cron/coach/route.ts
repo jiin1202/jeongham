@@ -46,8 +46,9 @@ type Opts = { dry: boolean; only?: string; force?: boolean };
 function env() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  const priv = process.env.VAPID_PRIVATE_KEY;
+  // 붙여넣기 실수(머리말·공백·따옴표)에 대비해 키 부분만 뽑는다
+  const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.match(/[A-Za-z0-9_-]{80,}/)?.[0];
+  const priv = process.env.VAPID_PRIVATE_KEY?.match(/[A-Za-z0-9_-]{40,}/)?.[0];
   return url && key && pub && priv ? { url, key, pub, priv } : null;
 }
 

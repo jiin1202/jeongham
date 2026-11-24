@@ -5,8 +5,8 @@ import { supabase, cloudEnabled } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { track } from "@/lib/track";
 
-// 붙여넣을 때 섞인 공백·따옴표·줄바꿈은 제거한다
-const VAPID = (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "").replace(/[\s"']/g, "");
+// 붙여넣을 때 "Public Key:" 같은 머리말·공백·따옴표가 섞여도 키 부분(base64url 80자 이상)만 쓴다
+const VAPID = (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "").match(/[A-Za-z0-9_-]{80,}/)?.[0] ?? "";
 
 function b64ToBytes(s: string) {
   const pad = "=".repeat((4 - (s.length % 4)) % 4);
