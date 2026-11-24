@@ -199,7 +199,14 @@ function ApplyToRoutine({ a }: { a: CounselAnswer }) {
     const s = loadSaved();
     setHas(!!s?.ids?.length);
     // 진료가 먼저인 경우엔 새 제품을 기본으로 고르지 않는다
-    setPick(Object.fromEntries(a.products.filter((p) => p.fit?.kind !== "have").map((p) => [p.id, !a.doctor.needed])));
+    // 같은 제품을 바꾸는 후보가 둘이면 첫 번째만 고른다
+    const taken = new Set<string>();
+    setPick(Object.fromEntries(a.products.filter((p) => p.fit?.kind !== "have").map((p) => {
+      const target = p.fit?.replaces?.id;
+      const on = !a.doctor.needed && !(target && taken.has(target));
+      if (target) taken.add(target);
+      return [p.id, on];
+    })));
   }, [a]);
 
   if (has === null) return null;
@@ -254,7 +261,12 @@ function ApplyToRoutine({ a }: { a: CounselAnswer }) {
             {changes.map((p) => (
               <li key={p.id}>
                 <label className="flex items-start gap-2">
-                  <input type="checkbox" checked={!!pick[p.id]} onChange={(e) => setPick({ ...pick, [p.id]: e.target.checked })} className="mt-1 h-4 w-4 accent-ink" />
+                  <input type="checkbox" checked={!!pick[p.id]} onChange={(e) => {
+                    const next = { ...pick, [p.id]: e.target.checked };
+                    // 같은 제품을 바꾸는 후보는 하나만 고를 수 있다
+                    if (e.target.checked && p.fit?.replaces) for (const o of changes) if (o.id !== p.id && o.fit?.replaces?.id === p.fit.replaces.id) next[o.id] = false;
+                    setPick(next);
+                  }} className="mt-1 h-4 w-4 accent-ink" />
                   <span>{line(p)}</span>
                 </label>
               </li>
