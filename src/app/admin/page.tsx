@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { VISUALS, mediaUrl } from "@/data/visuals";
 import { supabase, cloudEnabled } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { loadLocalEvents } from "@/lib/store";
@@ -56,6 +57,64 @@ function Dist({ title, data, label }: { title: string; data: Record<string, numb
 // 코치 자율 실행 시험: 매일 저녁 크론과 같은 코드를 운영자 본인에게만 지금 실행
 type CS = { starts: number; answers: number; avgQuestions: number | null; doctorRate: number | null; productRate: number | null; policyRate: number | null; p50ms: number | null; tokensIn: number; tokensOut: number; concerns: Record<string, number> };
 const CONCERN_KO: Record<string, string> = { trouble: "트러블", pore: "모공", oil: "유분", dry: "건조", redness: "붉어짐", tone: "톤", aging: "탄력" };
+
+// 사이트 이미지 만들기(AI 생성, 운영자만)
+function ImageMaker() {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [msg, setMsg] = useState<Record<string, string>>({});
+  const [ver, setVer] = useState<Record<string, string>>({});
+  const [prompts, setPrompts] = useState<Record<string, string>>(() => Object.fromEntries(VISUALS.map((v) => [v.name, v.prompt])));
+  const [quality, setQuality] = useState("medium");
+  const make = async (name: string, size: string) => {
+    if (!supabase) return;
+    setBusy(name);
+    setMsg((m) => ({ ...m, [name]: "만드는 중… (30초~1분)" }));
+    try {
+      const { data } = await supabase.auth.getSession();
+      const r = await fetch("/api/admin/image/", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${data.session?.access_token ?? ""}` }, body: JSON.stringify({ name, prompt: prompts[name], size, quality }) });
+      const j = await r.json();
+      if (!r.ok) setMsg((m) => ({ ...m, [name]: `${j.error}${j.detail ? " " + j.detail.join(" / ") : ""}` }));
+      else {
+        setVer((v) => ({ ...v, [name]: j.url }));
+        setMsg((m) => ({ ...m, [name]: `완료 (${j.model})` }));
+      }
+    } catch (e) {
+      setMsg((m) => ({ ...m, [name]: `실패: ${String((e as Error).message).slice(0, 80)}` }));
+    }
+    setBusy(null);
+  };
+  return (
+    <section className="mt-12" aria-labelledby="img-h">
+      <h2 id="img-h" className="text-[20px] font-extrabold tracking-[-0.03em]">사이트 이미지 만들기</h2>
+      <p className="mt-1 text-[13px] text-steel">OpenAI 이미지 모델로 만들고 사이트에 바로 반영돼요. 실존 브랜드·로고·글자, 효과를 보여주는 비포·애프터는 만들지 않아요. 사이트에는 “AI로 만든 이미지”로 표시돼요.</p>
+      <label className="mt-3 flex items-center gap-2 text-[13.5px]">
+        품질
+        <select value={quality} onChange={(e) => setQuality(e.target.value)} className="rounded-lg border border-line px-2 py-1">
+          <option value="low">낮음(약 $0.01)</option>
+          <option value="medium">보통(약 $0.03~0.05)</option>
+          <option value="high">높음(약 $0.13~0.2)</option>
+        </select>
+      </label>
+      <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+        {VISUALS.map((v) => (
+          <li key={v.name} className="rounded-2xl border border-line p-4">
+            <div className="flex items-baseline justify-between gap-2">
+              <b className="text-[14.5px]">{v.where}</b>
+              <span className="text-[12px] text-mist">{v.name} · {v.size}</span>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element -- 방금 만든 이미지 미리보기 */}
+            <img src={ver[v.name] ?? mediaUrl(v.name)} alt="" className="mt-2 aspect-[3/2] w-full rounded-xl bg-fog object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} onLoad={(e) => (e.currentTarget.style.visibility = "visible")} />
+            <textarea value={prompts[v.name]} onChange={(e) => setPrompts({ ...prompts, [v.name]: e.target.value })} rows={3} className="mt-2 w-full rounded-lg border border-line p-2 text-[12px]" />
+            <div className="mt-2 flex items-center gap-3">
+              <button type="button" disabled={!!busy} onClick={() => make(v.name, v.size)} className="btn-primary h-9 px-3 text-[13px] disabled:opacity-50">{busy === v.name ? "만드는 중" : "만들기"}</button>
+              {msg[v.name] && <span role="status" className="text-[12.5px] text-steel">{msg[v.name]}</span>}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 // 고민 상담 익명 통계(대화 내용·사용자 ID 없이 숫자만)
 function CounselStats() {
@@ -229,6 +288,7 @@ export default function AdminPage() {
       </dl>
 
       {!local && <CounselStats />}
+      {!local && <ImageMaker />}
       {!local && <AutoRunTest />}
 
       <section className="mt-10">
