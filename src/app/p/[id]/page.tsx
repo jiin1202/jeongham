@@ -8,6 +8,7 @@ import { pairsFor } from "@/lib/pairs";
 import { daysToEmpty } from "@/lib/engine";
 import ProductActions from "./ProductActions";
 import PeerResults from "./PeerResults";
+import ProductNotes from "./ProductNotes";
 import PickButtons from "@/components/PickButtons";
 import { cheaperAlternatives } from "@/lib/alternatives";
 import { GROUPS as ING_GROUPS } from "@/data/ingredients";
@@ -134,6 +135,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       </section>
 
       <PeerResults id={p.id} />
+
+      <ProductNotes id={p.id} />
 
       {alts.length > 0 && (
         <section className="mt-12">

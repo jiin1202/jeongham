@@ -268,3 +268,51 @@ begin
   return r;
 end $$;
 grant execute on function counsel_stats_summary() to authenticated;
+-- 써본 사람 장단점: 정해진 태그 + 한 줄(100자). 기기당 제품 1개, 익명. 직접 읽기·쓰기는 막고 함수로만
+create table if not exists product_notes (
+  id bigint generated always as identity primary key,
+  anon_id text not null,
+  user_id uuid references auth.users on delete set null,
+  product_id text not null,
+  skin_type text check (skin_type in ('dry','oily','combo','normal')),
+  used text not null check (used in ('week','month','long')),
+  pros text[] not null default '{}',
+  cons text[] not null default '{}',
+  comment text check (char_length(comment) <= 100),
+  hidden boolean not null default false,
+  created_at timestamptz default now(),
+  unique (anon_id, product_id)
+);
+alter table product_notes enable row level security;
+revoke all on product_notes from anon, authenticated;
+grant all on product_notes to service_role;
+
+create or replace function submit_note(p_anon text, p_product text, p_skin text, p_used text, p_pros text[], p_cons text[], p_comment text)
+returns void language plpgsql security definer set search_path = public as $$
+declare allowed_pros text[] := array['촉촉해요','끈적임 없어요','순해요','향이 거의 없어요','흡수가 빨라요','가성비 좋아요','면도 후에도 괜찮아요','백탁 없어요'];
+  allowed_cons text[] := array['끈적여요','건조해요','따가웠어요','향이 세요','하얗게 떠요','트러블이 났어요','비싸요','눈이 시려요'];
+  c text := nullif(btrim(coalesce(p_comment, '')), '');
+begin
+  if length(coalesce(p_anon, '')) < 8 or length(coalesce(p_product, '')) not between 6 and 20 then raise exception 'bad input'; end if;
+  if not (p_pros <@ allowed_pros and p_cons <@ allowed_cons) then raise exception 'bad tag'; end if;
+  if cardinality(p_pros) + cardinality(p_cons) = 0 or cardinality(p_pros) > 4 or cardinality(p_cons) > 4 then raise exception 'bad count'; end if;
+  -- 링크·연락처가 든 한 줄은 저장하지 않음(광고·개인정보 방지)
+  if c ~* '(https?://|www\.|\.com|\.kr|010[- ]?\d{3,4}|카톡|오픈채팅|@)' then c := null; end if;
+  insert into product_notes (anon_id, user_id, product_id, skin_type, used, pros, cons, comment)
+  values (p_anon, auth.uid(), p_product, nullif(p_skin, ''), p_used, p_pros, p_cons, left(c, 100))
+  on conflict (anon_id, product_id) do update
+    set pros = excluded.pros, cons = excluded.cons, comment = excluded.comment, used = excluded.used, skin_type = excluded.skin_type, created_at = now();
+end $$;
+grant execute on function submit_note(text,text,text,text,text[],text[],text) to anon, authenticated;
+
+-- 제품별 집계: 태그 수 + 최근 한 줄 5개(작성자 정보 없이)
+create or replace function product_notes_summary(p_product text)
+returns jsonb language sql security definer set search_path = public as $$
+  select jsonb_build_object(
+    'n', (select count(*) from product_notes where product_id = p_product and not hidden),
+    'pros', (select coalesce(jsonb_object_agg(t, k), '{}') from (select unnest(pros) t, count(*) k from product_notes where product_id = p_product and not hidden group by 1) x),
+    'cons', (select coalesce(jsonb_object_agg(t, k), '{}') from (select unnest(cons) t, count(*) k from product_notes where product_id = p_product and not hidden group by 1) x),
+    'recent', (select coalesce(jsonb_agg(r), '[]') from (select comment, skin_type, used, created_at::date d from product_notes where product_id = p_product and not hidden and comment is not null order by created_at desc limit 5) r)
+  );
+$$;
+grant execute on function product_notes_summary(text) to anon, authenticated;

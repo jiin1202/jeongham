@@ -137,3 +137,18 @@ export async function logCoachOutcome(id: number | undefined, outcome: unknown) 
   if (!supabase || !id) return;
   await supabase.rpc("coach_outcome", { p_anon: anonId(), p_id: id, p_outcome: outcome });
 }
+
+// ── 써본 사람 장단점(익명 태그 + 한 줄) ──
+export const NOTE_PROS = ["촉촉해요", "끈적임 없어요", "순해요", "향이 거의 없어요", "흡수가 빨라요", "가성비 좋아요", "면도 후에도 괜찮아요", "백탁 없어요"] as const;
+export const NOTE_CONS = ["끈적여요", "건조해요", "따가웠어요", "향이 세요", "하얗게 떠요", "트러블이 났어요", "비싸요", "눈이 시려요"] as const;
+export type NoteSummary = { n: number; pros: Record<string, number>; cons: Record<string, number>; recent: { comment: string; skin_type: string | null; used: string; d: string }[] };
+export async function fetchNotes(productId: string): Promise<NoteSummary | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc("product_notes_summary", { p_product: productId });
+  return error ? null : (data as NoteSummary);
+}
+export async function submitNote(productId: string, v: { skin: string | null; used: string; pros: string[]; cons: string[]; comment: string }) {
+  if (!supabase) return "지금은 의견을 남길 수 없어요.";
+  const { error } = await supabase.rpc("submit_note", { p_anon: anonId(), p_product: productId, p_skin: v.skin ?? "", p_used: v.used, p_pros: v.pros, p_cons: v.cons, p_comment: v.comment });
+  return error ? "저장하지 못했어요. 잠시 뒤 다시 시도해 주세요." : null;
+}
