@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
 import FitLine from "@/components/FitLine";
 import { GROUPS, type IngGroup } from "@/data/ingredients";
-import { categoryLabel, concernLabel, products, textureLabel, type Category, type Concern, type Product, type SkinType } from "@/lib/model";
+import { categoryLabel, concernLabel, keyBenefits, products, textureLabel, type Category, type Concern, type Product, type SkinType } from "@/lib/model";
 import { skinTypeLabel } from "@/lib/quiz";
 
 const cats: (Category | "all")[] = ["all", "cleanser", "toner", "serum", "moisturizer", "allinone", "sun", "pad", "sheet", "pack", "patch"];
@@ -40,6 +40,41 @@ const unit = (p: Product) => (priceOf(p) / Math.max(1, p.volume * p.units)) * (p
 const hasEarly = (p: Product, g: IngGroup) => p.hits.some((h) => h.group === g && h.pos < 25);
 const hasAvoid = (p: Product, g: IngGroup) => (g === "alcohol" ? p.hits.some((h) => h.group === "alcohol" && h.pos < 6) : p.groups.has(g));
 
+const PER_PAGE = 24;
+const SUN_LABEL: Record<string, string> = { mineral: "무기자차", chemical: "유기자차", hybrid: "혼합자차" };
+
+/** 카드에 보여줄 한눈 정보: 핵심 성분 최대 3개(성분표 앞쪽 15번째 안), 순함·주의 표시 */
+function glance(p: Product) {
+  const ings = keyBenefits(p).filter((h) => h.pos < 15).slice(0, 3).map((h) => GROUPS[h.group].label.replace(/\(.*\)/, ""));
+  const gentle = p.irritation === 0 && p.activeStrong.length === 0;
+  const flags: { t: string; tone: "good" | "warn" | "plain" }[] = [];
+  if (p.category === "sun" && p.sunFilter) flags.push({ t: SUN_LABEL[p.sunFilter], tone: "plain" });
+  if (gentle) flags.push({ t: "순한 편", tone: "good" });
+  else if (p.irritation >= 3) flags.push({ t: "자극 가능 성분", tone: "warn" });
+  if (p.fragranceFree) flags.push({ t: "무향", tone: "good" });
+  if (p.activeStrong.includes("retinoid")) flags.push({ t: "저녁 전용", tone: "warn" });
+  else if (p.activeStrong.length) flags.push({ t: "각질 케어", tone: "warn" });
+  return { ings, flags };
+}
+
+function Pager({ page, pages, go }: { page: number; pages: number; go: (n: number) => void }) {
+  if (pages <= 1) return null;
+  const nums = Array.from({ length: pages }, (_, i) => i + 1).filter((n) => n === 1 || n === pages || Math.abs(n - page) <= 2);
+  const btn = "flex h-10 min-w-10 items-center justify-center rounded-xl px-3 text-[14px] font-semibold";
+  return (
+    <nav aria-label="페이지" className="mt-8 flex flex-wrap items-center justify-center gap-1.5">
+      <button type="button" onClick={() => go(page - 1)} disabled={page === 1} className={`${btn} bg-fog text-steel disabled:opacity-40`}>이전</button>
+      {nums.map((n, i) => (
+        <span key={n} className="flex items-center gap-1.5">
+          {i > 0 && n - nums[i - 1] > 1 && <span className="text-mist">…</span>}
+          <button type="button" onClick={() => go(n)} aria-current={n === page ? "page" : undefined} className={`${btn} ${n === page ? "bg-ink text-white" : "bg-fog text-steel hover:text-ink"}`}>{n}</button>
+        </span>
+      ))}
+      <button type="button" onClick={() => go(page + 1)} disabled={page === pages} className={`${btn} bg-fog text-steel disabled:opacity-40`}>다음</button>
+    </nav>
+  );
+}
+
 function toggle<T>(arr: T[], v: T) {
   return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 }
@@ -69,6 +104,8 @@ export default function ProductsPage() {
   const [men, setMen] = useState(false);
   const [sort, setSort] = useState<Sort>("rank");
   const [open, setOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const c = new URLSearchParams(location.search).get("c") as Category | null;
@@ -100,6 +137,15 @@ export default function ProductsPage() {
     };
     return out.sort(by[sort]);
   }, [q, cat, con, skin, tex, price, want, avoid, sun, gentle, functional, men, sort]);
+
+  // 필터·정렬이 바뀌면 첫 페이지로
+  useEffect(() => setPage(1), [list]);
+  const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
+  const shown = list.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const go = (n: number) => {
+    setPage(Math.min(pages, Math.max(1, n)));
+    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const active = con.length + (skin ? 1 : 0) + tex.length + price.length + want.length + avoid.length + sun.length + (gentle ? 1 : 0) + (functional ? 1 : 0) + (men ? 1 : 0);
   const chip = (on: boolean) => `rounded-full px-3 py-1.5 text-[13px] font-medium ${on ? "bg-lemon text-ink" : "bg-fog text-steel hover:text-ink"}`;
@@ -219,9 +265,9 @@ export default function ProductsPage() {
         </aside>
 
         <section>
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div ref={topRef} className="flex scroll-mt-24 flex-wrap items-center justify-between gap-3">
             <p className="text-[14px] text-steel" aria-live="polite">
-              <b className="text-ink">{list.length}</b>개
+              <b className="text-ink">{list.length}</b>개{pages > 1 && ` 중 ${(page - 1) * PER_PAGE + 1}~${Math.min(page * PER_PAGE, list.length)}`}
             </p>
             <label className="flex items-center gap-2 text-[14px]">
               <span className="sr-only">정렬</span>
@@ -236,29 +282,53 @@ export default function ProductsPage() {
               <button type="button" onClick={reset} className="font-semibold text-lemon-ink underline underline-offset-4">모두 지우기</button>
             </div>
           ) : (
-            <ul className="mt-4 divide-y divide-line border-y border-line">
-              {list.map((p) => (
-                <li key={p.id}>
-                  <Link href={`/p/${p.id}/`} className="grid grid-cols-[auto_1fr_auto] items-center gap-4 py-4 hover:bg-fog/50 sm:px-2">
-                    <ProductThumb p={p} className="h-16 w-16 sm:h-20 sm:w-20" />
-                    <span className="min-w-0">
-                      <span className="block text-[12.5px] text-steel">{categoryLabel[p.category]}, {p.brand}</span>
-                      <span className="block truncate text-[15.5px] font-semibold">{p.name}</span>
-                      <FitLine p={p} className="mt-1" />
-                      <span className="mt-1 flex flex-wrap gap-1 text-[12px]">
-                        <span className="rounded bg-fog px-1.5 py-0.5 text-steel">{textureLabel[p.texture]}</span>
-                        {p.concerns.slice(0, 3).map((c) => <span key={c} className="rounded bg-lemon-wash px-1.5 py-0.5 text-lemon-ink">{concernLabel[c]}</span>)}
-                        {p.irritation >= 3 && <span className="rounded bg-amber-wash px-1.5 py-0.5 text-amber">자극 가능 성분</span>}
+            <>
+            <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
+              {shown.map((p) => {
+                const g = glance(p);
+                return (
+                  <li key={p.id}>
+                    <Link href={`/p/${p.id}/`} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white transition-colors hover:border-ink">
+                      <span className="relative block bg-fog/70 p-4">
+                        <ProductThumb p={p} className="mx-auto h-28 w-28 sm:h-36 sm:w-36" />
+                        <span className="absolute left-2.5 top-2.5 flex flex-wrap gap-1 text-[11px] font-semibold">
+                          <span className="rounded-md bg-white px-1.5 py-0.5 text-ink ring-1 ring-line">{categoryLabel[p.category]}</span>
+                          {p.forMen && <span className="rounded-md bg-ink px-1.5 py-0.5 text-white">남성용</span>}
+                          {!!p.functional && !/해당\s*없음|해당사항\s*없음|없음/.test(p.functional) && <span className="rounded-md bg-lemon px-1.5 py-0.5 text-ink">기능성</span>}
+                        </span>
                       </span>
-                    </span>
-                    <span className="text-right">
-                      <span className="block text-[15px] font-bold tabular-nums">{priceOf(p).toLocaleString()}원</span>
-                      <span className="block text-[12px] tabular-nums text-mist">{p.countUnit ? `1${p.countUnit}당` : "10ml당"} {Math.round(unit(p)).toLocaleString()}원</span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
+                      <span className="flex flex-1 flex-col p-3.5 sm:p-4">
+                        <span className="text-[12.5px] text-steel">{p.brand}</span>
+                        <span className="mt-0.5 line-clamp-2 min-h-[2.6em] text-[14.5px] font-semibold leading-[1.3]">{p.name}</span>
+                        <FitLine p={p} className="mt-2 self-start" />
+                        {p.concerns.length > 0 && (
+                          <span className="mt-2.5 block text-[12px] text-steel">
+                            <span className="font-semibold text-ink">효과</span> {p.concerns.slice(0, 3).map((c) => concernLabel[c]).join(" · ")}
+                          </span>
+                        )}
+                        {g.ings.length > 0 && (
+                          <span className="mt-1 block text-[12px] text-steel">
+                            <span className="font-semibold text-ink">핵심 성분</span> {g.ings.join(" · ")}
+                          </span>
+                        )}
+                        <span className="mt-2 flex flex-wrap gap-1 text-[11.5px] font-medium">
+                          <span className="rounded bg-fog px-1.5 py-0.5 text-steel">{textureLabel[p.texture]}</span>
+                          {g.flags.map((f) => (
+                            <span key={f.t} className={`rounded px-1.5 py-0.5 ${f.tone === "good" ? "bg-lemon-wash text-lemon-ink" : f.tone === "warn" ? "bg-amber-wash text-amber" : "bg-fog text-steel"}`}>{f.t}</span>
+                          ))}
+                        </span>
+                        <span className="mt-auto flex items-baseline justify-between gap-2 pt-3">
+                          <span className="text-[16px] font-bold tabular-nums">{priceOf(p).toLocaleString()}원</span>
+                          <span className="text-[11.5px] tabular-nums text-mist">{p.countUnit ? `1${p.countUnit}당` : "10ml당"} {Math.round(unit(p)).toLocaleString()}원</span>
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
+            <Pager page={page} pages={pages} go={go} />
+            </>
           )}
         </section>
       </div>
