@@ -125,3 +125,11 @@ export const saveCounselNote = (n: CounselNote | null) => {
   } catch {}
   return true;
 };
+
+// ── 찜·비교함(이 기기에 저장, 로그인 불필요) ──
+const WK = "jh.wish", CK2 = "jh.compare";
+export const COMPARE_MAX = 3;
+export const loadWish = () => read<string[]>(WK) ?? [];
+export const saveWish = (ids: string[]) => write(WK, ids.slice(0, 100));
+export const loadCompare = () => read<string[]>(CK2) ?? [];
+export const saveCompare = (ids: string[]) => write(CK2, ids.slice(0, COMPARE_MAX));

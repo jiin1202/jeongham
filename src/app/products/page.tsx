@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
 import FitLine from "@/components/FitLine";
+import PickButtons from "@/components/PickButtons";
 import { GROUPS, type IngGroup } from "@/data/ingredients";
 import { categoryLabel, concernLabel, keyBenefits, products, textureLabel, type Category, type Concern, type Product, type SkinType } from "@/lib/model";
 import { skinTypeLabel } from "@/lib/quiz";
@@ -291,6 +292,7 @@ export default function ProductsPage() {
                     <Link href={`/p/${p.id}/`} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white transition-colors hover:border-ink">
                       <span className="relative block bg-fog/70 p-4">
                         <ProductThumb p={p} className="mx-auto h-28 w-28 sm:h-36 sm:w-36" />
+                        <span className="absolute right-2.5 top-2.5"><PickButtons id={p.id} /></span>
                         <span className="absolute left-2.5 top-2.5 flex flex-wrap gap-1 text-[11px] font-semibold">
                           <span className="rounded-md bg-white px-1.5 py-0.5 text-ink ring-1 ring-line">{categoryLabel[p.category]}</span>
                           {p.forMen && <span className="rounded-md bg-ink px-1.5 py-0.5 text-white">남성용</span>}

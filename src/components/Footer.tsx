@@ -19,6 +19,7 @@ export default function Footer() {
           <Link href="/mine" className="hover:text-ink">쓰는 제품 검사</Link>
           <Link href="/guide" className="hover:text-ink">스킨케어 가이드</Link>
           <Link href="/me" className="hover:text-ink">내 루틴</Link>
+          <Link href="/partners" className="hover:text-ink">브랜드·제휴</Link>
           <Link href="/privacy" className="hover:text-ink">개인정보 처리방침</Link>
         </div>
       </div>

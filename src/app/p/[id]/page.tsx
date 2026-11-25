@@ -8,6 +8,9 @@ import { pairsFor } from "@/lib/pairs";
 import { daysToEmpty } from "@/lib/engine";
 import ProductActions from "./ProductActions";
 import PeerResults from "./PeerResults";
+import PickButtons from "@/components/PickButtons";
+import { cheaperAlternatives } from "@/lib/alternatives";
+import { GROUPS as ING_GROUPS } from "@/data/ingredients";
 // 성분 분석 데이터만 근거로 만든 한 줄 요약(운영자 페이지에서 GPT 생성 + 과장 표현 검사)
 import SUMMARY_RAW from "@/data/summaries.json";
 const SUMMARY = SUMMARY_RAW as Record<string, string>;
@@ -42,6 +45,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const adv = advice(p);
   const fit = fitLine(p);
   const pairs = pairsFor(p);
+  const alts = cheaperAlternatives(p);
   const warn = cautions(p);
   const posGroup = new Map<number, (typeof p.hits)[number]>();
   p.hits.forEach((h) => {
@@ -100,6 +104,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             </div>
           </dl>
           <ProductActions id={p.id} goodsNo={p.goodsNo} />
+          <div className="mt-2"><PickButtons id={p.id} size="lg" /></div>
         </div>
       </header>
 
@@ -129,6 +134,25 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       </section>
 
       <PeerResults id={p.id} />
+
+      {alts.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-[19px] font-bold tracking-[-0.02em]">비슷한데 더 싼 것</h2>
+          <p className="mt-1 text-[13.5px] text-steel">같은 종류에 핵심 성분이 겹치고, 용량 대비 20% 이상 싼 제품이에요. 자극 가능 성분이 더 많은 건 뺐어요.</p>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+            {alts.map((x) => (
+              <li key={x.p.id}>
+                <Link href={`/p/${x.p.id}/`} className="flex h-full flex-col rounded-2xl border border-line p-4 hover:border-ink">
+                  <span className="text-[12.5px] text-steel">{x.p.brand}</span>
+                  <span className="font-semibold leading-snug">{x.p.name}</span>
+                  <span className="mt-2 text-[12.5px] text-steel">겹치는 성분: {x.shared.map((g) => ING_GROUPS[g].label).join(" · ")}</span>
+                  <span className="mt-auto pt-3 text-[14px] font-bold tabular-nums">{x.p.price.toLocaleString()}원 <span className="text-[12.5px] font-semibold text-lemon-ink">용량 대비 {Math.round(x.save * 100)}% 저렴</span></span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-fog px-5 py-4">
         <p className="text-[14px] leading-6 text-steel">사용 전후 사진이 담긴 실제 구매자 리뷰는 올리브영에서 볼 수 있어요. 정함은 리뷰 사진을 옮겨 오지 않아요(작성자의 사진이라서요).</p>

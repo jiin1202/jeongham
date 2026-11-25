@@ -11,6 +11,7 @@ const nav = [
   { href: "/mine", label: "쓰는 제품 검사" },
   { href: "/guide", label: "가이드" },
   { href: "/me", label: "내 루틴" },
+  { href: "/saved", label: "찜·비교" },
 ];
 
 export function Logo({ className = "" }: { className?: string }) {
