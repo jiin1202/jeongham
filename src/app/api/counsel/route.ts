@@ -9,7 +9,7 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return NextResponse.json({ type: "error", message: "상담 기능이 아직 준비 중이에요." }, { status: 503 });
-  let body: { history?: ChatTurn[]; context?: CounselContext };
+  let body: { history?: ChatTurn[]; context?: CounselContext; eval?: boolean };
   try { body = await req.json(); } catch { return NextResponse.json({ type: "error", message: "잘못된 요청이에요." }, { status: 400 }); }
   const history = (Array.isArray(body.history) ? body.history : [])
     .filter((t) => (t.role === "user" || t.role === "agent") && typeof t.text === "string")
@@ -24,7 +24,8 @@ export async function POST(req: Request) {
   const t0 = Date.now();
   try {
     const r = await counsel(history, ctx, key);
-    await logStats(r, history.length === 1, Date.now() - t0);
+    // 평가 스크립트 실행분은 운영 통계에 넣지 않는다
+    if (!body.eval) await logStats(r, history.length === 1, Date.now() - t0);
     return NextResponse.json(r);
   } catch (e) {
     const why = String((e as Error).message);
