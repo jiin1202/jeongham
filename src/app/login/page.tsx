@@ -8,9 +8,10 @@ import { cloudEnabled } from "@/lib/supabase";
 const GOOGLE = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
 
 export default function LoginPage() {
-  const { user, ready, signInGoogle, signInEmail, verifyCode, signOut } = useAuth();
-  const [code, setCode] = useState("");
+  const { user, ready, signInGoogle, signInEmail, signInPassword, setPassword, signOut } = useAuth();
+  const [pw, setPw] = useState("");
   const [sent, setSent] = useState(false);
+  const [mode, setMode] = useState<"mail" | "password">("mail");
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -33,6 +34,22 @@ export default function LoginPage() {
         <h1 className="text-[30px] font-extrabold tracking-[-0.035em]">로그인되어 있어요</h1>
         <p className="mt-3 text-steel">{user.email}</p>
         <p className="mt-4 text-[15px] leading-7 text-steel">루틴, 체크, 피부 기록, 만족도가 계정에 저장돼서 다른 기기에서도 이어서 볼 수 있어요.</p>
+        <form
+          className="mt-8 rounded-2xl border border-line p-5"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (pw.length < 8) return setMsg({ ok: false, t: "비밀번호는 8자 이상으로 정해 주세요." });
+            const err = await setPassword(pw);
+            setPw("");
+            setMsg(err ? { ok: false, t: err } : { ok: true, t: "비밀번호를 정했어요. 이제 다른 브라우저에서도 이메일과 비밀번호로 바로 로그인할 수 있어요." });
+          }}
+        >
+          <label htmlFor="npw" className="text-[14px] font-semibold">비밀번호 정하기 (선택)</label>
+          <p className="mt-1 text-[13px] text-steel">메일 링크가 다른 브라우저에서 열려 불편했다면, 비밀번호를 정해 두세요.</p>
+          <input id="npw" type="password" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="8자 이상" className="mt-2 h-11 w-full rounded-xl border border-line px-4 text-[15px] outline-none focus:border-lemon-deep" />
+          <button type="submit" className="btn mt-2 h-10 px-4 text-[14px]">비밀번호 저장</button>
+          {msg && <p role="status" className={`mt-2 text-[13px] ${msg.ok ? "text-lemon-ink" : "text-rose"}`}>{msg.t}</p>}
+        </form>
         <div className="mt-8 flex flex-wrap gap-2">
           <Link href="/me/" className="btn-primary">내 루틴</Link>
           <button type="button" onClick={() => signOut()} className="btn-ghost">로그아웃</button>
@@ -48,13 +65,13 @@ export default function LoginPage() {
     const err = await signInEmail(email);
     setBusy(false);
     if (!err) setSent(true);
-    setMsg(err ? { ok: false, t: err } : { ok: true, t: `${email}로 메일을 보냈어요. 이 화면에서 로그인하려면 메일의 6자리 코드를 아래에 넣고, 같은 기기 브라우저라면 링크를 눌러도 돼요.` });
+    setMsg(err ? { ok: false, t: err } : { ok: true, t: `${email}로 로그인 링크를 보냈어요. 링크는 메일을 연 브라우저에서 로그인돼요. 지금 이 브라우저에서 쓰려면 링크를 복사해 이 브라우저 주소창에 붙여 넣으세요.` });
   };
-  const sendCode = async (e: React.FormEvent) => {
+  const loginPw = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!/^\d{6,8}$/.test(code.trim())) return setMsg({ ok: false, t: "메일에 있는 숫자 코드를 넣어 주세요." });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !pw) return setMsg({ ok: false, t: "이메일과 비밀번호를 넣어 주세요." });
     setBusy(true);
-    const err = await verifyCode(email, code.trim());
+    const err = await signInPassword(email, pw);
     setBusy(false);
     if (err) setMsg({ ok: false, t: err });
   };
@@ -90,13 +107,17 @@ export default function LoginPage() {
       <form onSubmit={sendEmail} noValidate className={GOOGLE ? "" : "mt-8"}>
         <label htmlFor="em" className="text-[14px] font-semibold">이메일</label>
         <input id="em" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="mt-2 h-12 w-full rounded-xl border border-line px-4 text-[16px] outline-none placeholder:text-mist focus:border-lemon-deep" />
-        <button type="submit" disabled={busy} className="btn-primary mt-3 h-12 w-full disabled:opacity-50">{busy && !sent ? "보내는 중…" : sent ? "메일 다시 받기" : "로그인 메일 받기"}</button>
+        <button type="submit" disabled={busy} className="btn-primary mt-3 h-12 w-full disabled:opacity-50">{busy && mode === "mail" ? "보내는 중…" : sent ? "메일 다시 받기" : "로그인 링크 받기"}</button>
       </form>
-      {sent && (
-        <form onSubmit={sendCode} noValidate className="mt-6">
-          <label htmlFor="code" className="text-[14px] font-semibold">메일로 받은 코드</label>
-          <input id="code" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} maxLength={8} placeholder="숫자 6자리" className="mt-2 h-12 w-full rounded-xl border border-line px-4 text-[18px] tracking-[0.3em] outline-none placeholder:tracking-normal placeholder:text-mist focus:border-lemon-deep" />
-          <button type="submit" disabled={busy} className="btn-primary mt-3 h-12 w-full disabled:opacity-50">{busy ? "확인하는 중…" : "코드로 로그인"}</button>
+      <button type="button" onClick={() => { setMode(mode === "mail" ? "password" : "mail"); setMsg(null); }} className="mt-4 text-[13.5px] font-semibold text-steel underline underline-offset-4 hover:text-ink">
+        {mode === "mail" ? "비밀번호로 로그인" : "메일 링크로 로그인"}
+      </button>
+      {mode === "password" && (
+        <form onSubmit={loginPw} noValidate className="mt-4">
+          <label htmlFor="pw" className="text-[14px] font-semibold">비밀번호</label>
+          <input id="pw" type="password" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} className="mt-2 h-12 w-full rounded-xl border border-line px-4 text-[16px] outline-none focus:border-lemon-deep" />
+          <button type="submit" disabled={busy} className="btn-primary mt-3 h-12 w-full disabled:opacity-50">{busy ? "확인하는 중…" : "비밀번호로 로그인"}</button>
+          <p className="mt-2 text-[12.5px] text-mist">비밀번호는 메일 링크로 한 번 로그인한 뒤 이 페이지에서 정할 수 있어요.</p>
         </form>
       )}
       {msg && (
