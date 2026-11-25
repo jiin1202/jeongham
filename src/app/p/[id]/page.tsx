@@ -8,6 +8,9 @@ import { pairsFor } from "@/lib/pairs";
 import { daysToEmpty } from "@/lib/engine";
 import ProductActions from "./ProductActions";
 import PeerResults from "./PeerResults";
+// 성분 분석 데이터만 근거로 만든 한 줄 요약(운영자 페이지에서 GPT 생성 + 과장 표현 검사)
+import SUMMARY_RAW from "@/data/summaries.json";
+const SUMMARY = SUMMARY_RAW as Record<string, string>;
 import { oliveyoungUrl } from "@/lib/model";
 import ProductThumb from "@/components/ProductThumb";
 import { PX_BRANDS, pxNote } from "@/data/px";
@@ -63,6 +66,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           <p className="text-[13px] font-semibold text-lemon-ink">{categoryLabel[p.category]}</p>
           <Link href={brandHref(p.brand)} className="mt-1 inline-block text-[15px] font-semibold text-steel underline-offset-4 hover:text-ink hover:underline">{p.brand} <span className="text-[13px] font-normal">브랜드 제품 모아보기</span></Link>
           <h1 className="mt-0.5 text-[28px] font-extrabold leading-tight tracking-[-0.035em] sm:text-[34px]">{p.name}</h1>
+          {SUMMARY[p.id] && <p className="mt-2 text-[16px] leading-7 text-steel">{SUMMARY[p.id]}</p>}
           <FitLine p={p} size="lg" className="mt-3" />
           <div className="mt-3 flex flex-wrap gap-1.5 text-[13px]">
             <span className="rounded-full bg-fog px-3 py-1 text-steel">{textureLabel[p.texture]}</span>
