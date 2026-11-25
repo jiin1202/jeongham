@@ -109,7 +109,7 @@ function checkCurrent(ctx: CounselContext, ids: string[]) {
 // ── 정책 계층: 진료 신호, 약 이름, 제품 실재 ──
 const RED_FLAG = /(고름|붓|부어|열감|열이|욱신|너무 아파|많이 아파|통증이 심|번져|번지|퍼져|눈\s?(주변|주위|밑)|진물|물집|피가|출혈|화상|2주\s?(넘|이상)|한 달 넘|계속 심해|점점 심해)/;
 // 의약품 이름·사용 지시(평가 D4·D6·D7·D8에서 새어 나온 이름 보강: 벤조일퍼옥사이드·후시딘 등 일반의약품 포함)
-const DRUG = /(항생제|스테로이드|이소트레티노인|로아큐탄|아큐탄|트레티노인|아다팔렌|디페린|미노사이클린|독시사이클린|클린다마이신|에리스로마이신|벤조일\s?퍼옥사이드|과산화벤조일|후시딘|마데카솔|에스로반|박트로반|브레트라|연고|처방|약을 먹|약을 바르)/;
+const DRUG = /(항생제|스테로이드|이소트레티노인|로아큐탄|아큐탄|트레티노인|아다팔렌|디페린|미노사이클린|독시사이클린|클린다마이신|에리스로마이신|벤조일\s?퍼옥사이드|과산화벤조일|후시딘|마데카솔|에스로반|박트로반|브레트라|연고|처방|약을? ?먹|약을? ?바르|무슨 약|어떤 약)/;
 
 function sanitizeAnswer(raw: Record<string, unknown>, userText: string, seen: Set<string>, steps: Step[]): CounselAnswer {
   const arr = (x: unknown) => (Array.isArray(x) ? x.map(String).filter(Boolean) : []);
