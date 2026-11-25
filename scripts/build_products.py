@@ -66,11 +66,23 @@ def clean_ing(t):
     t = re.sub(r"\(\s*[\d.,\s]+\s*(ppm|ppb|%|mg)\s*\)", "", t, flags=re.I)
     return re.sub(r"(?<!\d)\s*,\s*", ", ", t).strip(" ,")
 
+# 4차 수집분(raw4.json, 11/25 브랜드 보강): 형식은 raw2와 같고, 마스크팩·패드는 3차 경로로 보낸다
+R4_SPECIAL = {"q": [], "d": {}}
+R4 = None
+if len(sys.argv) > 4:
+    R4 = json.load(open(sys.argv[4]))
+    for x in R4["q"]:
+        if re.search(r"마스크팩|패드|코팩|패치|시트팩|페이셜팩", x.get("cat", "")):
+            R4_SPECIAL["q"].append(x); R4_SPECIAL["d"][x["g"]] = R4["d"].get(x["g"], {})
+
 # 2차 수집분(raw2.json, 브라우저 수집): q는 dict 목록, d는 {v,s,i,f,m,u}
 IMG2 = {}
 NEW = set()
 if len(sys.argv) > 2:
     r2 = json.load(open(sys.argv[2]))
+    if R4:
+        r2["q"] = r2["q"] + [x for x in R4["q"] if x not in R4_SPECIAL["q"]]
+        for k, v in R4["d"].items(): r2["d"].setdefault(k, v)
     for x in r2["q"]:
         src["q"].append([x["g"], x.get("cat", ""), x["src"], x["rank"], x["brand"], x["name"], x["org"], x["cur"], 1 if x["src"] == "men" else 0])
         NEW.add(x["g"])
@@ -134,6 +146,8 @@ def short_usage(u):
 SP_EX = re.compile(r"\d종|헤어|바디|핸드|풋|립|입술|넥|목|겨드랑|디바이스|세트|키트|&|\d+종 ?(혼합|모음|세트)|체험")
 if len(sys.argv) > 3:
     r3 = json.load(open(sys.argv[3]))
+    r3["q"] = r3["q"] + R4_SPECIAL["q"]
+    for k, v in R4_SPECIAL["d"].items(): r3["d"].setdefault(k, v)
     for x in r3["q"]:
         g = x["g"]; d = r3["d"].get(g) or {}
         name = x["name"]; brand = x["brand"]

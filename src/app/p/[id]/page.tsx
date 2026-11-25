@@ -8,6 +8,7 @@ import { pairsFor } from "@/lib/pairs";
 import { daysToEmpty } from "@/lib/engine";
 import ProductActions from "./ProductActions";
 import PeerResults from "./PeerResults";
+import { oliveyoungUrl } from "@/lib/model";
 import ProductThumb from "@/components/ProductThumb";
 import { PX_BRANDS, pxNote } from "@/data/px";
 import { brandHref } from "@/lib/brands";
@@ -124,6 +125,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       </section>
 
       <PeerResults id={p.id} />
+
+      <section className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-fog px-5 py-4">
+        <p className="text-[14px] leading-6 text-steel">사용 전후 사진이 담긴 실제 구매자 리뷰는 올리브영에서 볼 수 있어요. 정함은 리뷰 사진을 옮겨 오지 않아요(작성자의 사진이라서요).</p>
+        <a href={`${oliveyoungUrl(p.goodsNo)}#review`} target="_blank" rel="noopener noreferrer" className="btn h-10 shrink-0 px-4 text-[14px]">올리브영 실제 리뷰 보기</a>
+      </section>
 
       {pairs.length > 0 && (
         <section className="mt-12">
