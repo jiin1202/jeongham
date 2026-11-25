@@ -5,7 +5,7 @@ import { VISUALS, mediaUrl } from "@/data/visuals";
 import { supabase, cloudEnabled } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { loadLocalEvents } from "@/lib/store";
-import { byId, concernLabel, type Concern, type SkinType } from "@/lib/model";
+import { byId, products, concernLabel, type Concern, type SkinType } from "@/lib/model";
 import { skinTypeLabel } from "@/lib/quiz";
 
 type Stats = {
@@ -57,6 +57,42 @@ function Dist({ title, data, label }: { title: string; data: Record<string, numb
 // 코치 자율 실행 시험: 매일 저녁 크론과 같은 코드를 운영자 본인에게만 지금 실행
 type CS = { starts: number; answers: number; avgQuestions: number | null; doctorRate: number | null; productRate: number | null; policyRate: number | null; p50ms: number | null; tokensIn: number; tokensOut: number; concerns: Record<string, number> };
 const CONCERN_KO: Record<string, string> = { trouble: "트러블", pore: "모공", oil: "유분", dry: "건조", redness: "붉어짐", tone: "톤", aging: "탄력" };
+
+// 제품 한 줄 요약 만들기(GPT, 운영자만). 결과는 이 브라우저(jh.summaries)에 모았다가 저장소 데이터로 옮긴다
+function SummaryMaker() {
+  const [state, setState] = useState<{ done: number; total: number; ok: number; dropped: number; err?: string } | null>(null);
+  const run = async (onlyMissing: boolean) => {
+    if (!supabase) return;
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token ?? "";
+    let saved: { ok: Record<string, string>; dropped: { id: string; line: string }[]; usage: { in: number; out: number } } = { ok: {}, dropped: [], usage: { in: 0, out: 0 } };
+    try { saved = { ...saved, ...JSON.parse(localStorage.getItem("jh.summaries") || "{}") }; } catch { /* 처음 */ }
+    const ids = products.map((p) => p.id).filter((id) => !onlyMissing || !saved.ok[id]);
+    setState({ done: 0, total: ids.length, ok: Object.keys(saved.ok).length, dropped: saved.dropped.length });
+    for (let i = 0; i < ids.length; i += 20) {
+      const r = await fetch("/api/admin/summaries/", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${token}` }, body: JSON.stringify({ ids: ids.slice(i, i + 20) }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { setState((s) => s && { ...s, err: `${j.error ?? r.status} ${j.detail ?? ""}` }); return; }
+      Object.assign(saved.ok, j.ok);
+      saved.dropped.push(...(j.dropped ?? []));
+      saved.usage.in += j.usage?.prompt_tokens ?? 0;
+      saved.usage.out += j.usage?.completion_tokens ?? 0;
+      localStorage.setItem("jh.summaries", JSON.stringify(saved));
+      setState({ done: Math.min(ids.length, i + 20), total: ids.length, ok: Object.keys(saved.ok).length, dropped: saved.dropped.length });
+    }
+  };
+  return (
+    <section className="mt-12" aria-labelledby="sum-h">
+      <h2 id="sum-h" className="text-[20px] font-extrabold tracking-[-0.03em]">제품 한 줄 요약</h2>
+      <p className="mt-1 text-[13px] text-steel">성분 분석 데이터만 근거로 GPT가 쓰고, 치료·미백·최상급 같은 표현이 들어가면 버려요.</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button type="button" onClick={() => run(true)} className="btn-primary h-10 px-4 text-[14px]">빠진 것만 만들기</button>
+        <button type="button" onClick={() => run(false)} className="btn h-10 px-4 text-[14px]">전부 다시 만들기</button>
+      </div>
+      {state && <p role="status" className="mt-2 text-[13px] text-steel">{state.done}/{state.total} 진행, 사용 {state.ok}개, 버림 {state.dropped}개{state.err ? `, 오류: ${state.err}` : ""}</p>}
+    </section>
+  );
+}
 
 // 사이트 이미지 만들기(AI 생성, 운영자만)
 function ImageMaker() {
@@ -289,6 +325,7 @@ export default function AdminPage() {
 
       {!local && <CounselStats />}
       {!local && <ImageMaker />}
+      {!local && <SummaryMaker />}
       {!local && <AutoRunTest />}
 
       <section className="mt-10">
