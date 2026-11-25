@@ -84,12 +84,12 @@ export default function ComparePage() {
       {mixedCats && <p className="mt-3 rounded-xl bg-amber-wash px-4 py-2.5 text-[13.5px] text-amber">종류가 다른 제품이 섞여 있어요. 같은 종류끼리 비교해야 정확해요.</p>}
 
       <div className="mt-6 overflow-x-auto">
-        <table className="w-full min-w-[560px] border-separate border-spacing-0 text-left text-[14px]">
+        <table className="w-full min-w-[520px] border-separate border-spacing-0 text-left text-[14px]">
           <thead>
             <tr>
-              <th className="w-[120px]" />
+              <th className="sticky left-0 z-10 w-[84px] bg-white sm:w-[120px]" />
               {items.map((p) => (
-                <th key={p.id} className="px-3 pb-4 align-top font-normal">
+                <th key={p.id} className="min-w-[150px] px-3 pb-4 align-top font-normal">
                   <Link href={`/p/${p.id}/`} className="block">
                     <ProductThumb p={p} className="h-24 w-24" />
                     <span className="mt-2 block text-[12.5px] text-steel">{categoryLabel[p.category]}, {p.brand}</span>
@@ -108,7 +108,7 @@ export default function ComparePage() {
           <tbody>
             {rows.map((r) => (
               <tr key={r.k}>
-                <th scope="row" className="border-t border-line py-3 pr-3 align-top text-[13px] font-semibold text-steel">{r.k}</th>
+                <th scope="row" className="sticky left-0 z-10 border-t border-line bg-white py-3 pr-2 align-top text-[12.5px] font-semibold text-steel sm:text-[13px]">{r.k}</th>
                 {items.map((p) => <td key={p.id} className="border-t border-line px-3 py-3 align-top">{r.cell(p)}</td>)}
                 {items.length < 3 && <td className="border-t border-line" />}
               </tr>
