@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AiPhoto from "@/components/AiPhoto";
 import ProductThumb from "@/components/ProductThumb";
 import FitLine from "@/components/FitLine";
 import { products } from "@/lib/model";
@@ -67,7 +68,9 @@ export default function Home() {
           <p className="mt-5 text-[13px] text-mist">로그인 없이, 무료로 쓸 수 있어요.</p>
         </div>
 
-        <div aria-hidden="true" className="rounded-[28px] bg-lemon p-6 sm:p-8">
+        <div className="relative">
+        <AiPhoto name="hero-morning" priority className="mb-[-56px] aspect-[3/2] rounded-[28px]" />
+        <div aria-hidden="true" className="relative mx-3 rounded-[28px] bg-lemon p-6 sm:mx-6 sm:p-8">
           <p className="text-[13px] font-semibold text-ink/65">이렇게 답하면</p>
           <ul className="mt-3 flex flex-wrap gap-2">
             {["이마·코만 번들거려요", "트러블·번들거림", "가끔 예민해요", "면도 2~3일에 한 번", "최소 단계로", "8만 원 이하"].map((a, i) => (
@@ -101,6 +104,27 @@ export default function Home() {
             </ol>
           </div>
         </div>
+        </div>
+      </section>
+
+      {/* 아침 루틴 사진 순서 */}
+      <section className="page pb-24" aria-labelledby="am-h">
+        <h2 id="am-h" className="text-[28px] font-extrabold tracking-[-0.04em] sm:text-[36px]">아침엔 이 순서로, 3분이면 끝나요</h2>
+        <p className="mt-3 max-w-xl text-[16px] leading-7 text-steel">순서와 양만 맞추면 제품이 적어도 충분해요. 면도한 날은 진정 단계를 하나 더해요.</p>
+        <ol className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { n: "step-wash", t: "세안", d: "미지근한 물, 30초~1분. 세게 문지르지 않기." },
+            { n: "step-moist", t: "보습", d: "다섯 군데에 콕콕 올리고 펴 바르기." },
+            { n: "step-sun", t: "선크림", d: "손가락 두 마디 길이. 외출 15분 전에." },
+            { n: "after-shave", t: "면도한 날", d: "문지르지 말고 손바닥으로 눌러 진정." },
+          ].map((x, i) => (
+            <li key={x.n}>
+              <AiPhoto name={x.n} className="aspect-square rounded-2xl bg-fog" fallback={<div className="aspect-square rounded-2xl bg-lemon-wash" />} />
+              <p className="mt-3 text-[15px] font-bold"><span className="mr-1.5 text-lemon-ink">{i + 1}</span>{x.t}</p>
+              <p className="mt-1 text-[14px] leading-6 text-steel">{x.d}</p>
+            </li>
+          ))}
+        </ol>
       </section>
 
       {/* 만든 이유 */}

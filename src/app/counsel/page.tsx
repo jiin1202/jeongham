@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ProductThumb from "@/components/ProductThumb";
+import AiPhoto from "@/components/AiPhoto";
 import { loadAnswers, loadMine, loadSaved, saveCounselNote, today } from "@/lib/store";
 import { saveSaved } from "@/lib/sync";
 import { track } from "@/lib/track";
@@ -78,6 +79,7 @@ export default function CounselPage() {
       <h1 className="text-[32px] font-extrabold leading-tight tracking-[-0.04em] sm:text-[40px]">피부 고민, 상황부터 들을게요</h1>
       <p className="mt-3 text-[15px] leading-7 text-steel">고민을 고르면 몇 가지만 탭으로 물어보고, 제품 성분까지 확인해서 지금 할 일을 정리해 드려요. {ctxNote}</p>
 
+      {items.length === 0 && <AiPhoto name="counsel" className="mt-6 aspect-[2/1] rounded-2xl bg-fog" />}
       {items.length === 0 && (
         <div className="mt-8">
           <p className="text-[14px] font-semibold">많이 묻는 고민</p>

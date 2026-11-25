@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { loadLogs, today, type SkinLog } from "@/lib/store";
 import { photoUrl, saveLog } from "@/lib/sync";
+import AiPhoto from "@/components/AiPhoto";
 import { useAuth } from "@/lib/auth";
 import { cloudEnabled } from "@/lib/supabase";
 import { track } from "@/lib/track";
@@ -123,6 +124,7 @@ export default function LogPage() {
     <div className="page max-w-[760px] pb-10 pt-10 sm:pt-14">
       <h1 className="text-[34px] font-extrabold tracking-[-0.04em] sm:text-[40px]">오늘 피부 기록</h1>
       <p className="mt-3 text-[15px] leading-7 text-steel">하루 10초면 돼요. 2주쯤 쌓이면 루틴이 피부에 맞는지 숫자와 사진으로 비교해 드려요.</p>
+      <AiPhoto name="check-log" className="mt-6 aspect-[2/1] rounded-2xl bg-fog" imgClassName="object-[center_35%]" />
 
       <section className="mt-8 space-y-6 rounded-3xl border border-line p-6 sm:p-8">
         <Scale label="오늘 피부 컨디션" value={f.overall} onChange={(v) => setF({ ...f, overall: v })} n={OVERALL} />

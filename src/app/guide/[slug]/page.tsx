@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AiPhoto from "@/components/AiPhoto";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { guideBySlug, guides } from "@/data/guides";
@@ -10,6 +11,8 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   return g ? { title: `${g.title} | 정함`, description: g.summary } : {};
 }
 
+const GUIDE_IMG: Record<string, string> = { "routine-order": "step-moist", "after-shave": "after-shave", sunscreen: "step-sun", "trouble-ingredients": "check-log" };
+
 export default function GuidePage({ params }: { params: { slug: string } }) {
   const g = guideBySlug.get(params.slug);
   if (!g) notFound();
@@ -19,6 +22,7 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
       <Link href="/guide/" className="text-[13px] text-steel hover:text-ink">가이드</Link>
       <h1 className="mt-3 text-[32px] font-extrabold leading-tight tracking-[-0.04em] sm:text-[38px]">{g.title}</h1>
       <p className="mt-4 text-[17px] leading-8 text-steel">{g.summary}</p>
+      {GUIDE_IMG[g.slug] && <AiPhoto name={GUIDE_IMG[g.slug]} className="mt-8 aspect-[3/2] rounded-2xl bg-fog" />}
       <div className="mt-10 space-y-8 text-[16px] leading-8">
         {g.body.map((b, i) => (
           <section key={i}>
