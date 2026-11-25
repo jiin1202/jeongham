@@ -4,8 +4,13 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { cloudEnabled } from "@/lib/supabase";
 
+// 구글 로그인은 Supabase에서 Google 공급자를 켠 뒤 NEXT_PUBLIC_GOOGLE_LOGIN=1로 보여준다
+const GOOGLE = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
+
 export default function LoginPage() {
-  const { user, ready, signInGoogle, signInEmail, signOut } = useAuth();
+  const { user, ready, signInGoogle, signInEmail, verifyCode, signOut } = useAuth();
+  const [code, setCode] = useState("");
+  const [sent, setSent] = useState(false);
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -42,7 +47,16 @@ export default function LoginPage() {
     setBusy(true);
     const err = await signInEmail(email);
     setBusy(false);
-    setMsg(err ? { ok: false, t: err } : { ok: true, t: `${email}로 로그인 링크를 보냈어요. 메일함에서 링크를 누르면 바로 로그인돼요.` });
+    if (!err) setSent(true);
+    setMsg(err ? { ok: false, t: err } : { ok: true, t: `${email}로 메일을 보냈어요. 이 화면에서 로그인하려면 메일의 6자리 코드를 아래에 넣고, 같은 기기 브라우저라면 링크를 눌러도 돼요.` });
+  };
+  const sendCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\d{6,8}$/.test(code.trim())) return setMsg({ ok: false, t: "메일에 있는 숫자 코드를 넣어 주세요." });
+    setBusy(true);
+    const err = await verifyCode(email, code.trim());
+    setBusy(false);
+    if (err) setMsg({ ok: false, t: err });
   };
 
   return (
@@ -50,6 +64,7 @@ export default function LoginPage() {
       <h1 className="text-[30px] font-extrabold tracking-[-0.035em]">로그인</h1>
       <p className="mt-3 text-[15px] leading-7 text-steel">로그인하면 폰과 PC에서 같은 루틴을 보고, 아침·저녁 알림을 받을 수 있어요. 이 브라우저에 있던 기록은 계정으로 옮겨져요.</p>
 
+      {GOOGLE && (<>
       <button
         type="button"
         onClick={async () => {
@@ -70,12 +85,20 @@ export default function LoginPage() {
       <div className="my-6 flex items-center gap-3 text-[13px] text-mist">
         <span className="h-px flex-1 bg-line" />또는<span className="h-px flex-1 bg-line" />
       </div>
+      </>)}
 
-      <form onSubmit={sendEmail} noValidate>
+      <form onSubmit={sendEmail} noValidate className={GOOGLE ? "" : "mt-8"}>
         <label htmlFor="em" className="text-[14px] font-semibold">이메일</label>
         <input id="em" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="mt-2 h-12 w-full rounded-xl border border-line px-4 text-[16px] outline-none placeholder:text-mist focus:border-lemon-deep" />
-        <button type="submit" disabled={busy} className="btn-primary mt-3 h-12 w-full disabled:opacity-50">{busy ? "보내는 중…" : "로그인 링크 받기"}</button>
+        <button type="submit" disabled={busy} className="btn-primary mt-3 h-12 w-full disabled:opacity-50">{busy && !sent ? "보내는 중…" : sent ? "메일 다시 받기" : "로그인 메일 받기"}</button>
       </form>
+      {sent && (
+        <form onSubmit={sendCode} noValidate className="mt-6">
+          <label htmlFor="code" className="text-[14px] font-semibold">메일로 받은 코드</label>
+          <input id="code" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} maxLength={8} placeholder="숫자 6자리" className="mt-2 h-12 w-full rounded-xl border border-line px-4 text-[18px] tracking-[0.3em] outline-none placeholder:tracking-normal placeholder:text-mist focus:border-lemon-deep" />
+          <button type="submit" disabled={busy} className="btn-primary mt-3 h-12 w-full disabled:opacity-50">{busy ? "확인하는 중…" : "코드로 로그인"}</button>
+        </form>
+      )}
       {msg && (
         <p role="status" className={`mt-4 rounded-xl px-4 py-3 text-[14px] leading-6 ${msg.ok ? "bg-lemon-wash text-lemon-ink" : "bg-rose-wash text-rose"}`}>
           {msg.t}
