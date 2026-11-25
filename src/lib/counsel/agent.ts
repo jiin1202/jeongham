@@ -48,7 +48,7 @@ const SYSTEM = `너는 '정함 고민 상담' 에이전트야. 상대는 스킨�
    - watch: 언제쯤 다시 확인할지(보통 2~4주 단위, 과장 금지)
    - doctor: 진료가 먼저인 신호가 있으면 needed=true와 이유
 규칙:
-- 진단·처방·약 이름(항생제, 스테로이드, 이소트레티노인 등)을 말하지 않는다. 약이 필요할 수 있는 상황이면 피부과를 권한다.
+- 진단·처방·약 이름(항생제, 스테로이드, 이소트레티노인, 벤조일퍼옥사이드, 연고 등)을 말하지 않는다. 사용자가 약 이름을 먼저 말해도 그 약의 사용법·횟수·중단·병용을 안내하지 않고, 피부과 의사나 약사와 상의하도록 권한다. 제품 이유(why)에도 약 이름을 쓰지 않는다.
 - 통증이 심함, 고름, 붓기, 열감, 빠르게 번짐, 눈 주변, 진물·물집, 2주 넘게 계속 악화 → doctor.needed=true.
 - 존댓말(~요), 친구처럼 짧게. 이모지·느낌표 남발 금지. 각 항목 60자 안팎.`;
 
@@ -106,7 +106,8 @@ function checkCurrent(ctx: CounselContext, ids: string[]) {
 
 // ── 정책 계층: 진료 신호, 약 이름, 제품 실재 ──
 const RED_FLAG = /(고름|붓|부어|열감|열이|욱신|너무 아파|많이 아파|통증이 심|번져|번지|퍼져|눈\s?(주변|주위|밑)|진물|물집|피가|출혈|화상|2주\s?(넘|이상)|한 달 넘|계속 심해|점점 심해)/;
-const DRUG = /(항생제|스테로이드|이소트레티노인|로아큐탄|아큐탄|트레티노인|아다팔렌|미노사이클린|독시사이클린|처방|연고를 바르|약을 먹)/;
+// 의약품 이름·사용 지시(평가 D4·D6·D7·D8에서 새어 나온 이름 보강: 벤조일퍼옥사이드·후시딘 등 일반의약품 포함)
+const DRUG = /(항생제|스테로이드|이소트레티노인|로아큐탄|아큐탄|트레티노인|아다팔렌|디페린|미노사이클린|독시사이클린|클린다마이신|에리스로마이신|벤조일\s?퍼옥사이드|과산화벤조일|후시딘|마데카솔|에스로반|박트로반|브레트라|연고|처방|약을 먹|약을 바르)/;
 
 function sanitizeAnswer(raw: Record<string, unknown>, userText: string, seen: Set<string>, steps: Step[]): CounselAnswer {
   const arr = (x: unknown) => (Array.isArray(x) ? x.map(String).filter(Boolean) : []);
@@ -117,16 +118,18 @@ function sanitizeAnswer(raw: Record<string, unknown>, userText: string, seen: Se
   const d = (raw.doctor ?? {}) as { needed?: boolean; why?: string };
   let doctor = { needed: !!d.needed, why: String(d.why ?? "") };
 
-  // 약 이름·처방 표현 제거
+  // 약 이름·처방 표현 제거(원인·할 일·요약·확인 시점·진료 이유 모두)
   const before = causes.length + doNow.length;
+  const asksDrug = DRUG.test(userText);
   const strip = (xs: string[]) => xs.filter((x) => !DRUG.test(x));
   causes = strip(causes);
   doNow = strip(doNow);
   if (DRUG.test(summary)) summary = "지금 상황을 정리하면 이래요.";
   if (DRUG.test(watch)) watch = "2주 정도 써보고 다시 확인해요.";
-  if (causes.length + doNow.length < before) {
-    steps.push({ kind: "policy", title: "정책 검사: 약·처방 표현을 빼고 진료 안내로 바꿈" });
-    doctor = { needed: true, why: doctor.why || "약이 필요한지는 피부과에서 확인해야 해요." };
+  if (DRUG.test(doctor.why)) doctor.why = "";
+  if (causes.length + doNow.length < before || asksDrug) {
+    steps.push({ kind: "policy", title: asksDrug ? "정책 검사: 약 질문이라 사용법 대신 진료·약사 상담 안내로 바꿈" : "정책 검사: 약·처방 표현을 빼고 진료 안내로 바꿈" });
+    doctor = { needed: true, why: doctor.why || "약을 쓸지, 어떻게 쓸지는 피부과 의사나 약사와 정하는 게 안전해요. 정함은 화장품 루틴만 도와드려요." };
   }
   // 진료 신호가 있는데 빠졌으면 보완
   if (RED_FLAG.test(userText) && !doctor.needed) {
@@ -139,7 +142,7 @@ function sanitizeAnswer(raw: Record<string, unknown>, userText: string, seen: Se
   for (const x of (Array.isArray(raw.products) ? raw.products : []) as { id?: string; why?: string }[]) {
     const p = x.id ? byId.get(String(x.id)) : undefined;
     if (!p || !seen.has(p.id) || prods.some((y) => y.id === p.id) || prods.length >= 2) { dropped++; continue; }
-    prods.push({ id: p.id, brand: p.brand, name: p.name, category: categoryLabel[p.category], price: p.price, why: String(x.why ?? "").replace(/\b\d{8}\b/g, "").slice(0, 80), thumb: { id: p.id, brand: p.brand, name: p.name, fullName: p.fullName, category: p.category, image: p.image } });
+    prods.push({ id: p.id, brand: p.brand, name: p.name, category: categoryLabel[p.category], price: p.price, why: (DRUG.test(String(x.why ?? "")) ? "순한 보습·진정용으로 무난해요" : String(x.why ?? "")).replace(/\b\d{8}\b/g, "").slice(0, 80), thumb: { id: p.id, brand: p.brand, name: p.name, fullName: p.fullName, category: p.category, image: p.image } });
   }
   if (dropped) steps.push({ kind: "policy", title: `정책 검사: 확인되지 않은 제품 ${dropped}개 제외` });
   if (!doNow.length) doNow = ["오늘은 순한 세안과 보습만 하고 새 제품은 잠시 미뤄요."];
