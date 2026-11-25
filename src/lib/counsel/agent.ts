@@ -89,7 +89,9 @@ function searchProducts(ctx: CounselContext, q: { category?: Category; concern?:
     .map((p) => ({ p, r: scoreProduct(p, a) }))
     .filter((x) => x.r)
     .sort((x, y) => y.r!.score - x.r!.score || x.p.rank - y.p.rank)
-    .slice(0, 5)
+    // 평가에서 토리든·피지오겔만 반복 추천됨 → 브랜드당 1개로 후보를 넓힌다
+    .filter((x, i, arr) => arr.findIndex((y) => y.p.brand === x.p.brand) === i)
+    .slice(0, 6)
     .map(({ p, r }) => ({ id: p.id, brand: p.brand, name: p.name, category: categoryLabel[p.category], price: p.price, reasons: r!.reasons.slice(0, 2) }));
 }
 function getProduct(id: string) {
